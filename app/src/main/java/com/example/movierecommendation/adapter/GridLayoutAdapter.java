@@ -1,0 +1,98 @@
+package com.example.movierecommendation.adapter;
+
+import android.app.Application;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.movierecommendation.R;
+import org.json.JSONException;
+import static com.example.movierecommendation.activity.CategoryActivity.gridlist;
+
+public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.ViewHolder> {
+
+    Context context;
+    RequestQueue requestQueue;
+    String _base_url;
+
+    public GridLayoutAdapter(Context c,String url){
+        _base_url=url;
+        context=c;
+        requestQueue= Volley.newRequestQueue(context);
+    }
+
+    @NonNull
+    @Override
+    public GridLayoutAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
+        View v= LayoutInflater.from(context).inflate(R.layout.movie_tile,parent,false);
+        return new GridLayoutAdapter.ViewHolder(v);
+    }
+
+    @Override
+    public long getItemId(int position) {
+
+        try {
+            return gridlist.get(position).getInt("id");
+        } catch (JSONException e) {
+            return 0;
+        }
+
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final GridLayoutAdapter.ViewHolder holder, int position) {
+
+        try {
+
+            holder.title.setText(gridlist.get(position).getString("title"));
+            holder.rating.setText(gridlist.get(position).get("vote_average").toString());
+            String path=gridlist.get(position).getString("poster_path");
+
+
+            ImageRequest imageRequest=new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
+                @Override
+                public void onResponse(Bitmap response) {
+                    holder.thumbnail.setImageBitmap(response);
+                }
+            },0,0,null,null);
+            requestQueue.add(imageRequest);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public int getItemCount() {
+
+        return gridlist.size();
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder{
+
+        ImageView thumbnail;
+        TextView title,rating;
+
+        public ViewHolder(@NonNull View itemView) {
+
+            super(itemView);
+            thumbnail=itemView.findViewById(R.id.thumbnail);
+            title=itemView.findViewById(R.id.title);
+            rating=itemView.findViewById(R.id.rating);
+
+        }
+    }
+}

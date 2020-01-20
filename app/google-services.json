@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "752287415082",
+    "firebase_url": "https://cinemaaddict-3356c.firebaseio.com",
+    "project_id": "cinemaaddict-3356c",
+    "storage_bucket": "cinemaaddict-3356c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752287415082:android:d0f8ec022c51d27d543c53",
+        "android_client_info": {
+          "package_name": "com.example.movierecommendation"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "752287415082-ii8h6k8c3o7tq4t78o7u1dto2kdecvep.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKvmyxMrRqf0LieXamuTyWm680nMzreRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "752287415082-ii8h6k8c3o7tq4t78o7u1dto2kdecvep.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
