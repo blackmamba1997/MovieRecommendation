@@ -4,90 +4,110 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#015668"
     tools:context=".activity.RegisterActivity">
 
     <TextView
-        android:textColor="@color/design_default_color_primary"
+        android:id="@+id/signuptext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="70dp"
         android:fontFamily="@font/amiko_bold"
         android:text="SIGN UP"
+        android:textColor="#ffd369"
         android:textSize="50sp"
         android:textStyle="bold" />
 
-
-    <Button
-        android:id="@+id/signupbutton"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingLeft="45dp"
-        android:paddingRight="45dp"
+        android:layout_below="@id/signuptext"
         android:layout_centerHorizontal="true"
-        android:layout_below="@id/password_confirm"
-        android:layout_marginTop="40dp"
-        android:text="Register"
-        />
+        android:layout_marginTop="80dp"
+        android:elevation="5dp"
+        app:cardCornerRadius="10dp">
 
-    <EditText
-        android:id="@+id/new_password"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_centerHorizontal="true"
-        android:hint="@string/prompt_password"
-        android:textColorHint="@color/design_default_color_primary"
-        android:inputType="textPassword"
-        android:layout_below="@id/new_email"
-        android:drawableLeft="@drawable/ic_lock_outline_black_24dp"
-        android:drawablePadding="7dp"
-        />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:background="#ffffff">
 
-    <EditText
-        android:id="@+id/password_confirm"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_centerHorizontal="true"
-        android:hint="Confirm password"
-        android:textColorHint="@color/design_default_color_primary"
-        android:inputType="textPassword"
-        android:layout_below="@id/new_password"
-        android:drawableLeft="@drawable/ic_lock_outline_black_24dp"
-        android:drawablePadding="7dp"
-        />
 
-    <EditText
-        android:id="@+id/new_email"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:drawableStart="@drawable/ic_mail_outline_black_24dp"
-        android:drawablePadding="7dp"
-        android:textColorHint="@color/design_default_color_primary"
-        android:layout_marginTop="200dp"
-        android:layout_marginEnd="24dp"
-        android:layout_centerHorizontal="true"
-        android:hint="@string/prompt_email"
-        android:inputType="textEmailAddress" />
-    <ProgressBar
-        android:id="@+id/loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="64dp"
-        android:layout_centerHorizontal="true"
-        android:visibility="invisible"
-        android:layout_below="@id/password_confirm"
-        />
+            <Button
+                android:id="@+id/signupbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/password_confirm"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="40dp"
+                android:paddingLeft="45dp"
+                android:paddingRight="45dp"
+                android:text="Register"
+                android:textColor="#015668"
+                android:background="#ffd369"/>
+
+            <EditText
+                android:id="@+id/new_password"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/new_email"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:drawableLeft="@drawable/ic_lock_outline_black_24dp"
+                android:drawablePadding="7dp"
+                android:hint="@string/prompt_password"
+                android:inputType="textPassword"
+                android:textColorHint="@color/design_default_color_primary" />
+
+            <EditText
+                android:id="@+id/password_confirm"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/new_password"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:drawableLeft="@drawable/ic_lock_outline_black_24dp"
+                android:drawablePadding="7dp"
+                android:hint="Confirm password"
+                android:inputType="textPassword"
+                android:textColorHint="@color/design_default_color_primary" />
+
+            <EditText
+                android:id="@+id/new_email"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="24dp"
+                android:drawableStart="@drawable/ic_mail_outline_black_24dp"
+                android:drawablePadding="7dp"
+                android:hint="@string/prompt_email"
+                android:inputType="textEmailAddress"
+                android:textColorHint="@color/design_default_color_primary" />
+
+            <ProgressBar
+                android:id="@+id/loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/password_confirm"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center"
+                android:layout_marginStart="32dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginEnd="32dp"
+                android:layout_marginBottom="64dp"
+                android:visibility="invisible" />
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
 
 
 </RelativeLayout>

@@ -75,7 +75,7 @@ public class CategoryActivity extends AppCompatActivity {
                 super.onScrollStateChanged(recyclerView, newState);
 
                 if(!recyclerView.canScrollVertically(1) && newState==RecyclerView.SCROLL_STATE_IDLE){
-                    Toast.makeText(CategoryActivity.this,"last",Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(CategoryActivity.this,"last",Toast.LENGTH_SHORT).show();
                     JsonObjectRequest jsonObjectRequest=new JsonObjectRequest(base_url+"&page="+(c++), null, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
