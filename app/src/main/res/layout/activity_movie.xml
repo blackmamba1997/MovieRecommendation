@@ -6,6 +6,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".activity.MovieActivity">
+
+    <include
+        layout="@layout/tool_bar"
+        android:id="@+id/tool_bar"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/movie_list"
         android:layout_width="match_parent"

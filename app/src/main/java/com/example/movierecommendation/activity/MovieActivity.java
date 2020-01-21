@@ -1,10 +1,15 @@
 package com.example.movierecommendation.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -14,6 +19,7 @@ import com.android.volley.toolbox.Volley;
 import com.example.movierecommendation.adapter.MovieList_Adapter;
 import com.example.movierecommendation.R;
 import com.example.movierecommendation.ui.activities.Movie_category;
+import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONObject;
 
@@ -24,12 +30,31 @@ public class MovieActivity extends AppCompatActivity {
     LinearLayoutManager manager;
     RecyclerView movie_list;
     MovieList_Adapter adapter;
+    Toolbar toolbar;
 
     public static ArrayList<Movie_category> jsonObjects;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie);
+
+        toolbar = findViewById(R.id.tool_bar);
+        toolbar.inflateMenu(R.menu.toolbar_menu);
+
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                int id=item.getItemId();
+                if (id==R.id.action_logout){
+                    FirebaseAuth.getInstance().signOut();
+                    startActivity(new Intent(MovieActivity.this,LoginActivity.class));
+                    finish();
+                    return true;
+                }
+                return false;
+            }
+        });
+
         jsonObjects=new ArrayList<>();
 
         //creating a recyclerview with vertical linear layout for the main page
@@ -100,4 +125,5 @@ public class MovieActivity extends AppCompatActivity {
         requestQueue.add(popular_json);
 
     }
+
 }
