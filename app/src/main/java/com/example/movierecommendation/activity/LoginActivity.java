@@ -43,7 +43,7 @@ public class LoginActivity extends AppCompatActivity {
         usernameEditText = findViewById(R.id.username);
         passwordEditText = findViewById(R.id.password);
         loginButton = findViewById(R.id.login);
-        //loadingProgressBar = findViewById(R.id.loading);
+        loadingProgressBar = findViewById(R.id.loading);
         signup=findViewById(R.id.sign_up);
 
         signup.setOnClickListener(new View.OnClickListener() {
@@ -65,6 +65,9 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (correctpass && correctuser) {
 
+                    loadingProgressBar.setVisibility(View.VISIBLE);
+                    loginButton.setVisibility(View.INVISIBLE);
+
                     mAuth.signInWithEmailAndPassword(username, password)
                             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                 @Override
@@ -79,7 +82,9 @@ public class LoginActivity extends AppCompatActivity {
                                     } else  {
 
                                         System.out.println(task.getException());
-
+                                        Toast.makeText(LoginActivity.this, "Credential is incorrect", Toast.LENGTH_SHORT).show();
+                                        loadingProgressBar.setVisibility(View.GONE);
+                                        loginButton.setVisibility(View.VISIBLE);
                                     }
                                 }
                             });
