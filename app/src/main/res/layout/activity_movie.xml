@@ -24,9 +24,10 @@
 
 
             <SearchView
+                android:id="@+id/searchbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/searchbar"
+                android:layout_marginBottom="5dp"
                 android:queryHint="Search Here..."
                 android:visibility="gone">
 
@@ -35,9 +36,25 @@
 
     </androidx.cardview.widget.CardView>
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/movie_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        app:cardCornerRadius="5dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/suggestion_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>
