@@ -50,7 +50,7 @@ public class SimilarMovieAdapter extends RecyclerView.Adapter<SimilarMovieAdapte
 
         try {
             String imagepath=SearchableActivity.similarmovie.get(position).getString("poster_path");
-            if (imagepath!=null) {
+            if (imagepath.charAt(0)=='/') {
                 ImageRequest poster = new ImageRequest(Url.baseimageurl + imagepath, new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
@@ -67,6 +67,8 @@ public class SimilarMovieAdapter extends RecyclerView.Adapter<SimilarMovieAdapte
 
                 req.add(poster);
 
+            }else{
+                holder.poster.setImageResource(R.drawable.ic_search_black_24dp);
             }
         } catch (JSONException e) {
 

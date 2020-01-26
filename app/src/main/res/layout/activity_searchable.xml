@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
     tools:context=".activity.SearchableActivity">
 
     <RelativeLayout
@@ -21,8 +22,7 @@
         <LinearLayout
             android:id="@+id/searchable_activity_linear_layout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/background"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -127,6 +127,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
+                android:id="@+id/video_cardView"
+                android:visibility="gone"
                 app:cardElevation="5dp">
 
                 <LinearLayout
@@ -157,6 +159,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
+                android:id="@+id/cast_cardview"
+                android:visibility="gone"
                 app:cardElevation="5dp">
 
                 <LinearLayout
@@ -218,6 +222,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
+                android:id="@+id/similarmovie_cardview"
+                android:visibility="gone"
                 app:cardElevation="5dp">
 
                 <LinearLayout

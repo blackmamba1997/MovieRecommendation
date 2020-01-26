@@ -1,6 +1,7 @@
 package com.example.movierecommendation.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -53,6 +54,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
     YouTubePlayerView youTubePlayerView;
     ProgressBar progressBar;
     LinearLayout layout;
+    CardView videocard,castcard,similarmoviecard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +75,9 @@ public class SearchableActivity extends YouTubeBaseActivity {
         youTubePlayerView=findViewById(R.id.youtube_video_player);
         progressBar=findViewById(R.id.searchable_activity_progressbar);
         layout=findViewById(R.id.searchable_activity_linear_layout);
+        videocard=findViewById(R.id.video_cardView);
+        castcard=findViewById(R.id.cast_cardview);
+        similarmoviecard=findViewById(R.id.similarmovie_cardview);
 
         cast=new ArrayList<>();
         similarmovie=new ArrayList<>();
@@ -104,7 +109,25 @@ public class SearchableActivity extends YouTubeBaseActivity {
                     insertposter(response.getString("poster_path"));
 
                     title.setText(response.getString("title"));
-                    runtime.setText(""+response.getInt("runtime"));
+
+                    JSONArray crewjsonarray=response.getJSONObject("credits").getJSONArray("crew");
+
+                    for(int i=0;i<crewjsonarray.length();i++){
+
+                        if(crewjsonarray.getJSONObject(i).getString("job").equals("Director")){
+
+                            director.setText("Director: " +crewjsonarray.getJSONObject(i).getString("name"));
+                            break;
+                        }
+
+                    }
+
+                    if(response.getInt("runtime")!=0) {
+                        runtime.setText("" + response.getInt("runtime")+" mins");
+                    }
+                    else{
+                        runtime.setText("No data available");
+                    }
                     overview.setText(response.getString("overview"));
                     JSONArray castJsonarray = response.getJSONObject("credits").getJSONArray("cast");
 
@@ -120,13 +143,22 @@ public class SearchableActivity extends YouTubeBaseActivity {
                         cast.add(castJsonarray.getJSONObject(i));
                     }
 
-                    castAdapter.notifyDataSetChanged();
+                    if(cast.size()!=0) {
+
+                        castcard.setVisibility(View.VISIBLE);
+                        castAdapter.notifyDataSetChanged();
+                    }
 
                     for (int i = 0; i<similarmovieJsonarray.length(); i++) {
                         similarmovie.add(similarmovieJsonarray.getJSONObject(i));
                     }
 
-                    similarMovieAdapter.notifyDataSetChanged();
+                    if(similarmovie.size()!=0) {
+
+                        similarmoviecard.setVisibility(View.VISIBLE);
+                        similarMovieAdapter.notifyDataSetChanged();
+
+                    }
 
                     JSONArray ytvideos=response.getJSONObject("videos").getJSONArray("results");
 
@@ -134,39 +166,43 @@ public class SearchableActivity extends YouTubeBaseActivity {
                         youtubevideo.add(ytvideos.getJSONObject(i).getString("key"));
                     }
 
-                    youTubePlayerView.initialize(Url.google_api_key, new YouTubePlayer.OnInitializedListener() {
-                        @Override
-                        public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
+                    if(youtubevideo.size()!=0) {
+                        videocard.setVisibility(View.VISIBLE);
 
-                            youTubePlayer.cueVideos(youtubevideo);
+                        youTubePlayerView.initialize(Url.google_api_key, new YouTubePlayer.OnInitializedListener() {
+                            @Override
+                            public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
 
-                            youTubePlayer.setPlaylistEventListener(new YouTubePlayer.PlaylistEventListener() {
-                                @Override
-                                public void onPrevious() {
+                                youTubePlayer.cueVideos(youtubevideo);
 
-                                    Toast.makeText(SearchableActivity.this, "prev vid", Toast.LENGTH_SHORT).show();
-                                }
+                                youTubePlayer.setPlaylistEventListener(new YouTubePlayer.PlaylistEventListener() {
+                                    @Override
+                                    public void onPrevious() {
 
-                                @Override
-                                public void onNext() {
+                                        Toast.makeText(SearchableActivity.this, "prev vid", Toast.LENGTH_SHORT).show();
+                                    }
 
-                                    Toast.makeText(SearchableActivity.this, "next vid", Toast.LENGTH_SHORT).show();
+                                    @Override
+                                    public void onNext() {
 
-                                }
+                                        Toast.makeText(SearchableActivity.this, "next vid", Toast.LENGTH_SHORT).show();
 
-                                @Override
-                                public void onPlaylistEnded() {
+                                    }
 
-                                }
-                            });
+                                    @Override
+                                    public void onPlaylistEnded() {
 
-                        }
+                                    }
+                                });
 
-                        @Override
-                        public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+                            }
 
-                        }
-                    });
+                            @Override
+                            public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
+
+                            }
+                        });
+                    }
 
 
                 } catch (JSONException e) {
@@ -185,22 +221,26 @@ public class SearchableActivity extends YouTubeBaseActivity {
     }
     private void insertposter(String path){
 
-        ImageRequest posterrequest=new ImageRequest(Url.baseimageurl+path, new Response.Listener<Bitmap>() {
-            @Override
-            public void onResponse(Bitmap response) {
+        if(path.charAt(0)=='/') {
 
-                poster.setImageBitmap(response);
+            ImageRequest posterrequest = new ImageRequest(Url.baseimageurl + path, new Response.Listener<Bitmap>() {
+                @Override
+                public void onResponse(Bitmap response) {
 
-            }
-        }, 0, 0, null, null, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
+                    poster.setImageBitmap(response);
 
-            }
-        });
+                }
+            }, 0, 0, null, null, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
 
-        requestQueue.add(posterrequest);
+                }
+            });
+
+            requestQueue.add(posterrequest);
+        }else{
+            poster.setImageResource(R.drawable.ic_search_black_24dp);
+        }
     }
-
 
 }

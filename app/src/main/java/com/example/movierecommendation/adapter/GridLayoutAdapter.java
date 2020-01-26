@@ -63,14 +63,23 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
             holder.rating.setText(gridlist.get(position).get("vote_average").toString());
             String path=gridlist.get(position).getString("poster_path");
 
+            if(path.charAt(0)=='/') {
 
-            ImageRequest imageRequest=new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap response) {
-                    holder.thumbnail.setImageBitmap(response);
-                }
-            },0,0,null,null,null);
-            requestQueue.add(imageRequest);
+                System.out.println("executing with "+path);
+
+                ImageRequest imageRequest = new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        holder.thumbnail.setImageBitmap(response);
+                    }
+                }, 0, 0, null, null, null);
+
+                requestQueue.add(imageRequest);
+
+            }else{
+
+                holder.thumbnail.setImageResource(R.drawable.ic_search_black_24dp);
+            }
 
             holder.thumbnail.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -78,7 +87,7 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
 
                     try {
                         Intent intent=new Intent(context, SearchableActivity.class);
-                        intent.putExtra("movie_id",gridlist.get(position).getInt("id"));
+                        intent.putExtra("movie_id",""+gridlist.get(position).getInt("id"));
                         context.startActivity(intent);
                     } catch (JSONException e) {
                         e.printStackTrace();

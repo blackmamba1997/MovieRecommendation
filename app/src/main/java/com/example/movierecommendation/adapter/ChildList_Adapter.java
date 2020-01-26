@@ -54,13 +54,18 @@ public class ChildList_Adapter extends RecyclerView.Adapter<ChildList_Adapter.Vi
             holder.rating.setText(movie.get("vote_average").toString());
             String path=movie.get("poster_path").toString();
 
-            ImageRequest imageRequest=new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap response) {
-                    holder.poster.setImageBitmap(response);
-                }
-            },0,0,null,null,null);
-            requestQueue.add(imageRequest);
+            if(path.charAt(0)=='/') {
+
+                ImageRequest imageRequest = new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        holder.poster.setImageBitmap(response);
+                    }
+                }, 0, 0, null, null, null);
+                requestQueue.add(imageRequest);
+            }else{
+                holder.poster.setImageResource(R.drawable.ic_search_black_24dp);
+            }
 
             holder.poster.setOnClickListener(new View.OnClickListener() {
                 @Override

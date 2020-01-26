@@ -50,19 +50,25 @@ public class CastAdapter extends RecyclerView.Adapter<CastAdapter.CastViewHolder
 
         try {
             String imagepath=SearchableActivity.cast.get(position).getString("profile_path");
-            ImageRequest castposter=new ImageRequest(Url.baseimageurl+imagepath, new Response.Listener<Bitmap>() {
-                @Override
-                public void onResponse(Bitmap response) {
-                    holder.castpic.setImageBitmap(response);
-                }
-            }, 0, 0, null, null, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
 
-                }
-            });
+            if(imagepath.charAt(0)=='/') {
+                ImageRequest castposter = new ImageRequest(Url.baseimageurl + imagepath, new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap response) {
+                        holder.castpic.setImageBitmap(response);
+                    }
+                }, 0, 0, null, null, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
 
-            req.add(castposter);
+                    }
+                });
+
+                req.add(castposter);
+            }
+            else{
+                holder.castpic.setImageResource(R.drawable.ic_search_black_24dp);
+            }
 
         } catch (JSONException e) {
             e.printStackTrace();
