@@ -22,6 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="110dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_search_black_24dp"
                 android:clickable="true"
                 android:scaleType="fitXY" />
 
@@ -32,6 +33,8 @@
                 android:layout_below="@id/thumbnail"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:paddingTop="7dp"
                 android:textColor="#000"
                 android:textSize="11dp" />

@@ -2,6 +2,7 @@ package com.example.movierecommendation.adapter;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,8 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.movierecommendation.R;
+import com.example.movierecommendation.activity.SearchableActivity;
+
 import org.json.JSONException;
 import static com.example.movierecommendation.activity.CategoryActivity.gridlist;
 
@@ -52,7 +55,7 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final GridLayoutAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final GridLayoutAdapter.ViewHolder holder, final int position) {
 
         try {
 
@@ -66,8 +69,22 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
                 public void onResponse(Bitmap response) {
                     holder.thumbnail.setImageBitmap(response);
                 }
-            },0,0,null,null);
+            },0,0,null,null,null);
             requestQueue.add(imageRequest);
+
+            holder.thumbnail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    try {
+                        Intent intent=new Intent(context, SearchableActivity.class);
+                        intent.putExtra("movie_id",gridlist.get(position).getInt("id"));
+                        context.startActivity(intent);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
         } catch (JSONException e) {
             e.printStackTrace();

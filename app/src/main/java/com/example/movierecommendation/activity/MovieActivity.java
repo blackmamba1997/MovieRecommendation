@@ -110,7 +110,7 @@ public class MovieActivity extends AppCompatActivity {
             @Override
             public void onResponse(JSONObject response) {
 
-                //inserting now playing josn object into arraylist
+                //inserting now playing json object into arraylist
 
                 jsonObjects.add(new Movie_category(response, "Now Playing", "https://api.themoviedb.org/3/movie/now_playing?api_key=4" +
                         "7125e67d25d22f00aebbf4f6d08a3aa&language=en-US"));

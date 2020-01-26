@@ -1,6 +1,7 @@
 package com.example.movierecommendation.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import com.android.volley.Response;
 import com.android.volley.toolbox.ImageRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.movierecommendation.R;
+import com.example.movierecommendation.activity.SearchableActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +49,7 @@ public class ChildList_Adapter extends RecyclerView.Adapter<ChildList_Adapter.Vi
 
         try {
 
-            JSONObject movie=list.getJSONObject(position);
+            final JSONObject movie=list.getJSONObject(position);
             holder.movie_name.setText(movie.getString("title"));
             holder.rating.setText(movie.get("vote_average").toString());
             String path=movie.get("poster_path").toString();
@@ -57,8 +59,23 @@ public class ChildList_Adapter extends RecyclerView.Adapter<ChildList_Adapter.Vi
                 public void onResponse(Bitmap response) {
                     holder.poster.setImageBitmap(response);
                 }
-            },0,0,null,null);
+            },0,0,null,null,null);
             requestQueue.add(imageRequest);
+
+            holder.poster.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    try {
+                        Intent intent=new Intent(c, SearchableActivity.class);
+                        System.out.println("ChildList_Adapter.onClick "+movie.getInt("id"));
+                        intent.putExtra("movie_id",""+movie.getInt("id"));
+                        c.startActivity(intent);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
 
         } catch (JSONException e) {
             e.printStackTrace();
