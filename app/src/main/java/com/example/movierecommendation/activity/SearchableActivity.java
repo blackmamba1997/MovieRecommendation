@@ -1,5 +1,6 @@
 package com.example.movierecommendation.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,10 +29,17 @@ import com.example.movierecommendation.adapter.CastAdapter;
 import com.example.movierecommendation.adapter.SimilarMovieAdapter;
 import com.example.movierecommendation.ui.activities.Movie;
 import com.example.movierecommendation.ui.activities.Url;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
@@ -38,6 +47,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class SearchableActivity extends YouTubeBaseActivity {
 
@@ -55,6 +65,8 @@ public class SearchableActivity extends YouTubeBaseActivity {
     ProgressBar progressBar;
     LinearLayout layout;
     CardView videocard,castcard,similarmoviecard;
+    RatingBar ratingbar;
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +90,8 @@ public class SearchableActivity extends YouTubeBaseActivity {
         videocard=findViewById(R.id.video_cardView);
         castcard=findViewById(R.id.cast_cardview);
         similarmoviecard=findViewById(R.id.similarmovie_cardview);
+        ratingbar=findViewById(R.id.movie_detail_user_rating);
+        db=FirebaseFirestore.getInstance();
 
         cast=new ArrayList<>();
         similarmovie=new ArrayList<>();
@@ -92,7 +106,9 @@ public class SearchableActivity extends YouTubeBaseActivity {
         similarmovie_list.setLayoutManager(similarmovie_manager);
         similarMovieAdapter = new SimilarMovieAdapter();
         similarmovie_list.setAdapter(similarMovieAdapter);
-        String movie_id = intent.getStringExtra("movie_id");
+        final String movie_id = intent.getStringExtra("movie_id");
+
+        findMovieRating(movie_id);
 
         requestQueue = Volley.newRequestQueue(this);
 
@@ -218,6 +234,25 @@ public class SearchableActivity extends YouTubeBaseActivity {
         });
         requestQueue.add(movie_details);
 
+
+        ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+
+                if(fromUser && rating>=0.5f) {
+
+                    Toast.makeText(SearchableActivity.this, "the rating is " + rating, Toast.LENGTH_SHORT).show();
+                    DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("rating", "" + rating);
+                    doc.collection("movies").document(movie_id).set(map);
+
+                }
+
+            }
+        });
+
     }
     private void insertposter(String path){
 
@@ -241,6 +276,28 @@ public class SearchableActivity extends YouTubeBaseActivity {
         }else{
             poster.setImageResource(R.drawable.ic_search_black_24dp);
         }
+    }
+
+    private void findMovieRating(String movie_id){
+
+        DocumentReference movie=db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .collection("movies").document(movie_id);
+
+        movie.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                        if(task.getResult().exists()){
+
+                            DocumentSnapshot data=task.getResult();
+                            float rating=Float.valueOf(data.getString("rating"));
+                            ratingbar.setRating(rating);
+                        }
+                    }
+                });
+
+
     }
 
 }

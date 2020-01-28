@@ -13,10 +13,15 @@ import android.widget.Toast;
 import com.example.movierecommendation.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -25,6 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText new_email,new_pass,confirm_pass;
     Button signup;
     ProgressBar load;
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +44,14 @@ public class RegisterActivity extends AppCompatActivity {
         signup = findViewById(R.id.signupbutton);
         load = findViewById(R.id.loading);
 
+        db=FirebaseFirestore.getInstance();
+        System.out.println(db);
+
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                String username = new_email.getText().toString();
+                final String username = new_email.getText().toString();
                 String pass = new_pass.getText().toString();
                 String cpass = confirm_pass.getText().toString();
                 boolean cemail = Pattern.compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", Pattern.CASE_INSENSITIVE).matcher(username).matches();
@@ -58,9 +67,27 @@ public class RegisterActivity extends AppCompatActivity {
 
                                     if (task.isSuccessful()) {
 
-                                        auth.signOut();
-                                        Toast.makeText(RegisterActivity.this, "Account Created Successfully", Toast.LENGTH_SHORT).show();
-                                        finish();
+                                        Map<String,Object> map=new HashMap<>();
+                                        map.put("email",username);
+
+                                        db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(map)
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void aVoid) {
+
+                                                        auth.signOut();
+                                                        Toast.makeText(RegisterActivity.this, "Account Created Successfully", Toast.LENGTH_SHORT).show();
+                                                        finish();
+
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+
+                                                    }
+                                                });
+
 
                                     } else {
 
