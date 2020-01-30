@@ -62,11 +62,13 @@ public class SearchableActivity extends YouTubeBaseActivity {
     ArrayList<String> youtubevideo;
     RequestQueue requestQueue;
     YouTubePlayerView youTubePlayerView;
+    YouTubePlayer ytplayer;
     ProgressBar progressBar;
     LinearLayout layout;
     CardView videocard,castcard,similarmoviecard;
     RatingBar ratingbar;
     FirebaseFirestore db;
+    String movie_id;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +86,6 @@ public class SearchableActivity extends YouTubeBaseActivity {
         overview = findViewById(R.id.movie_detail_overview);
         cast_list = findViewById(R.id.movie_detail_cast);
         similarmovie_list = findViewById(R.id.movie_detail_similar_movies);
-        youTubePlayerView=findViewById(R.id.youtube_video_player);
         progressBar=findViewById(R.id.searchable_activity_progressbar);
         layout=findViewById(R.id.searchable_activity_linear_layout);
         videocard=findViewById(R.id.video_cardView);
@@ -92,6 +93,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
         similarmoviecard=findViewById(R.id.similarmovie_cardview);
         ratingbar=findViewById(R.id.movie_detail_user_rating);
         db=FirebaseFirestore.getInstance();
+        youTubePlayerView=findViewById(R.id.youtube_video_player);
 
         cast=new ArrayList<>();
         similarmovie=new ArrayList<>();
@@ -106,11 +108,37 @@ public class SearchableActivity extends YouTubeBaseActivity {
         similarmovie_list.setLayoutManager(similarmovie_manager);
         similarMovieAdapter = new SimilarMovieAdapter();
         similarmovie_list.setAdapter(similarMovieAdapter);
-        final String movie_id = intent.getStringExtra("movie_id");
+        movie_id = intent.getStringExtra("movie_id");
 
         findMovieRating(movie_id);
 
         requestQueue = Volley.newRequestQueue(this);
+
+
+
+        ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+
+                if(fromUser && rating>=0.5f) {
+
+                    Toast.makeText(SearchableActivity.this, "the rating is " + rating, Toast.LENGTH_SHORT).show();
+                    DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("rating", "" + rating);
+                    doc.collection("movies").document(movie_id).set(map);
+
+                }
+
+            }
+        });
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         JsonObjectRequest movie_details = new JsonObjectRequest(Request.Method.GET, Url.movieurl+movie_id+"?"+Url.api_key+"&append_to_response=similar_movies%2Ccredits%2Cvideos", null, new Response.Listener<JSONObject>() {
             @Override
@@ -189,37 +217,20 @@ public class SearchableActivity extends YouTubeBaseActivity {
                             @Override
                             public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
 
-                                youTubePlayer.cueVideos(youtubevideo);
+                                System.out.println("SearchableActivity.onInitializationSuccess entered");
 
-                                youTubePlayer.setPlaylistEventListener(new YouTubePlayer.PlaylistEventListener() {
-                                    @Override
-                                    public void onPrevious() {
-
-                                        Toast.makeText(SearchableActivity.this, "prev vid", Toast.LENGTH_SHORT).show();
-                                    }
-
-                                    @Override
-                                    public void onNext() {
-
-                                        Toast.makeText(SearchableActivity.this, "next vid", Toast.LENGTH_SHORT).show();
-
-                                    }
-
-                                    @Override
-                                    public void onPlaylistEnded() {
-
-                                    }
-                                });
-
+                                ytplayer=youTubePlayer;
+                                
                             }
 
                             @Override
                             public void onInitializationFailure(YouTubePlayer.Provider provider, YouTubeInitializationResult youTubeInitializationResult) {
 
+                                System.out.println("SearchableActivity.onInitializationFailure");
+
                             }
                         });
                     }
-
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -233,27 +244,18 @@ public class SearchableActivity extends YouTubeBaseActivity {
             }
         });
         requestQueue.add(movie_details);
+    }
 
-
-        ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            @Override
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-
-                if(fromUser && rating>=0.5f) {
-
-                    Toast.makeText(SearchableActivity.this, "the rating is " + rating, Toast.LENGTH_SHORT).show();
-                    DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("rating", "" + rating);
-                    doc.collection("movies").document(movie_id).set(map);
-
-                }
-
-            }
-        });
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cast.clear();
+        similarmovie.clear();
+        youtubevideo.clear();
+        ytplayer.release();
 
     }
+
     private void insertposter(String path){
 
         if(path.charAt(0)=='/') {
@@ -296,7 +298,6 @@ public class SearchableActivity extends YouTubeBaseActivity {
                         }
                     }
                 });
-
 
     }
 
