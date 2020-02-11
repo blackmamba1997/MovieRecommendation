@@ -8,6 +8,8 @@
     tools:context=".activity.CategoryActivity">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/gridlayout"
+        android:layout_marginStart="3dp"
+        android:layout_marginEnd="3dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 

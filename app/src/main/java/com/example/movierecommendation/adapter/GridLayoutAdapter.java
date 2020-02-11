@@ -27,7 +27,9 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
 
     Context context;
     RequestQueue requestQueue;
+    ImageRequest imageRequest;
     String _base_url;
+    int pos;
 
     public GridLayoutAdapter(Context c,String url){
         _base_url=url;
@@ -38,6 +40,8 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
     @NonNull
     @Override
     public GridLayoutAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
+        System.out.println("GridLayoutAdapter.onCreateViewHolder");
 
         View v= LayoutInflater.from(context).inflate(R.layout.movie_tile,parent,false);
         return new GridLayoutAdapter.ViewHolder(v);
@@ -57,22 +61,31 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull final GridLayoutAdapter.ViewHolder holder, final int position) {
 
+        pos=holder.getAdapterPosition();
+
         try {
 
+            System.out.println("onBind called " +gridlist.get(position).getString("title") );
             holder.title.setText(gridlist.get(position).getString("title"));
-            holder.rating.setText(gridlist.get(position).get("vote_average").toString());
+            if (gridlist.get(position).get("vote_average").toString().equals("0")){
+                holder.rating.setText("Not rated yet");
+            }else {
+                holder.rating.setText(gridlist.get(position).get("vote_average").toString());
+            }
+
             String path=gridlist.get(position).getString("poster_path");
 
             if(path.charAt(0)=='/') {
 
                 System.out.println("executing with "+path);
 
-                ImageRequest imageRequest = new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
+                imageRequest = new ImageRequest("https://image.tmdb.org/t/p/w185" + path, new Response.Listener<Bitmap>() {
                     @Override
                     public void onResponse(Bitmap response) {
                         holder.thumbnail.setImageBitmap(response);
                     }
                 }, 0, 0, null, null, null);
+                imageRequest.setTag("image");
 
                 requestQueue.add(imageRequest);
 
@@ -100,6 +113,16 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
         }
 
     }
+
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+
+        super.onViewRecycled(holder);
+        System.out.println("GridLayoutAdapter.onViewRecycled "+holder.title.getText());
+        holder.thumbnail.setImageResource(R.drawable.ic_search_black_24dp);
+
+    }
+
 
     @Override
     public int getItemCount() {

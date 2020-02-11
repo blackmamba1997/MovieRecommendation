@@ -77,6 +77,12 @@ public class CastAdapter extends RecyclerView.Adapter<CastAdapter.CastViewHolder
     }
 
     @Override
+    public void onViewRecycled(@NonNull CastViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.castpic.setImageResource(R.drawable.ic_search_black_24dp);
+    }
+
+    @Override
     public int getItemCount() {
         return SearchableActivity.cast.size();
     }

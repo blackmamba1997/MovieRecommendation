@@ -86,7 +86,12 @@ public class ChildList_Adapter extends RecyclerView.Adapter<ChildList_Adapter.Vi
             e.printStackTrace();
         }
 
+    }
 
+    @Override
+    public void onViewRecycled(@NonNull ViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.poster.setImageResource(R.drawable.ic_search_black_24dp);
     }
 
     @Override

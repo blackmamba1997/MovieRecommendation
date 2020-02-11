@@ -69,6 +69,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
     RatingBar ratingbar;
     FirebaseFirestore db;
     String movie_id;
+    boolean isfullscreen=false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,6 +173,13 @@ public class SearchableActivity extends YouTubeBaseActivity {
                     else{
                         runtime.setText("No data available");
                     }
+
+                    if (response.getString("vote_average").equals("0")){
+
+                        rating.setText("Not rated yet");
+                    }else{
+                        rating.setText(response.getString("vote_average"));
+                    }
                     overview.setText(response.getString("overview"));
                     JSONArray castJsonarray = response.getJSONObject("credits").getJSONArray("cast");
 
@@ -220,7 +228,17 @@ public class SearchableActivity extends YouTubeBaseActivity {
                                 System.out.println("SearchableActivity.onInitializationSuccess entered");
 
                                 ytplayer=youTubePlayer;
-                                
+
+                                ytplayer.cueVideos(youtubevideo);
+
+
+                                ytplayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
+                                    @Override
+                                    public void onFullscreen(boolean b) {
+                                        isfullscreen=b;
+                                    }
+                                });
+
                             }
 
                             @Override
@@ -249,11 +267,33 @@ public class SearchableActivity extends YouTubeBaseActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
+
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
         cast.clear();
         similarmovie.clear();
         youtubevideo.clear();
-        ytplayer.release();
+        if(ytplayer!=null) {
+          ytplayer.release();
+        }
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if(isfullscreen){
+
+            isfullscreen=false;
+            ytplayer.setFullscreen(isfullscreen);
+
+        }else {
+            super.onBackPressed();
+        }
     }
 
     private void insertposter(String path){

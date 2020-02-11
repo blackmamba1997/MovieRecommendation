@@ -1,5 +1,6 @@
 package com.example.movierecommendation.activity;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,7 +10,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -21,15 +30,16 @@ import com.android.volley.toolbox.Volley;
 import com.example.movierecommendation.adapter.MovieList_Adapter;
 import com.example.movierecommendation.R;
 import com.example.movierecommendation.adapter.SuggestionListAdapter;
+import com.example.movierecommendation.ui.activities.Filter;
 import com.example.movierecommendation.ui.activities.Movie;
 import com.example.movierecommendation.ui.activities.Movie_category;
+import com.example.movierecommendation.ui.activities.Url;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -43,6 +53,10 @@ public class MovieActivity extends AppCompatActivity {
     SuggestionListAdapter s_adapter;
     Toolbar toolbar;
     SearchView search;
+    RelativeLayout searchfilterlayout;
+    ImageView filterbutton;
+    String selectedgenre="",selectedyear="",selectedsort="sort_by=popularity.desc",selectedlang="";
+    Button searchbutton,cancelbutton;
     int l=0;
 
 
@@ -58,6 +72,7 @@ public class MovieActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.tool_bar);
         toolbar.inflateMenu(R.menu.toolbar_menu);
+        searchfilterlayout=findViewById(R.id.movie_activity_searchandfilter_layout);
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -73,7 +88,7 @@ public class MovieActivity extends AppCompatActivity {
 
                         Toast.makeText(MovieActivity.this, "pressed the settings button", Toast.LENGTH_SHORT).show();
                         movie_list.setVisibility(View.GONE);
-                        search.setVisibility(View.VISIBLE);
+                        searchfilterlayout.setVisibility(View.VISIBLE);
                         suggest_list.setVisibility(View.VISIBLE);
                         l=1;
 
@@ -81,7 +96,7 @@ public class MovieActivity extends AppCompatActivity {
 
                         Toast.makeText(MovieActivity.this, "pressed the settings button", Toast.LENGTH_SHORT).show();
                         movie_list.setVisibility(View.VISIBLE);
-                        search.setVisibility(View.GONE);
+                        searchfilterlayout.setVisibility(View.GONE);
                         suggest_list.setVisibility(View.GONE);
                         l=0;
 
@@ -170,7 +185,7 @@ public class MovieActivity extends AppCompatActivity {
 
         search=findViewById(R.id.searchbar);
         search.setIconifiedByDefault(false);
-        search.setSubmitButtonEnabled(true);
+        search.setSubmitButtonEnabled(false);
 
         final RequestQueue suggestqueue=Volley.newRequestQueue(this);
 
@@ -227,21 +242,175 @@ public class MovieActivity extends AppCompatActivity {
             }
         });
 
-        search.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+        JsonObjectRequest genrereq=new JsonObjectRequest(Request.Method.GET, Url.base_url + "/genre/movie/list?" + Url.api_key, null, new Response.Listener<JSONObject>() {
             @Override
-            public void onFocusChange(View v, boolean hasFocus) {
+            public void onResponse(JSONObject response) {
+
+                try {
+                    Filter.getGenre(response);
+                    Filter.getYear();
+                    Filter.getSort();
+                    Filter.getLanguage();
+                    for (int i=0;i<Filter.genre.size();i++)
+                    System.out.println("MovieActivity.onResponse "+Filter.genre.get(i));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        },null);
+        requestQueue.add(genrereq);
+
+        filterbutton=findViewById(R.id.filter);
+        filterbutton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final AlertDialog.Builder builder=new AlertDialog.Builder(MovieActivity.this);
+
+                View view =getLayoutInflater().inflate(R.layout.filter_dialog_layout,null);
+                View view2 =getLayoutInflater().inflate(R.layout.filter_custom_title,null);
+                Spinner genre_spinner=view.findViewById(R.id.genre_spinner);
+                Spinner year_spinner=view.findViewById(R.id.year_spinner);
+                Spinner sort_spinner=view.findViewById(R.id.sort_spinner);
+                Spinner lang_spinner=view.findViewById(R.id.language_spinner);
+                final Switch adult_switch=view.findViewById(R.id.adult_switch);
+                builder.setView(view);
+                builder.setCustomTitle(view2);
+                final AlertDialog alert=builder.create();
+                alert.show();
+
+                ArrayAdapter<String> genreadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.genre);
+                genreadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                genre_spinner.setAdapter(genreadapter);
+
+                ArrayAdapter<String> yearadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.year);
+                yearadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                year_spinner.setAdapter(yearadapter);
+
+                ArrayAdapter<String> sortadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.sort);
+                sortadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                sort_spinner.setAdapter(sortadapter);
+
+                ArrayAdapter<String> langadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.language);
+                langadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                lang_spinner.setAdapter(langadapter);
+
+                genre_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                        if(position==0){
+                            selectedgenre="";
+                        }else {
+                            selectedgenre = "&with_genres=" + Filter.genreHashMap.get(Filter.genre.get(position)).gid;
+                        }
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+                year_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                        if(position==0){
+                            selectedyear="";
+                        }else {
+                            selectedyear = "&primary_release_year=" + Filter.year.get(position);
+                        }
+
+                        System.out.println("MovieActivity.onItemSelected"+selectedyear);
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+                sort_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                        selectedsort="&sort_by="+Filter.sortHashMap.get(Filter.sort.get(position)).key;
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+                searchbutton=view.findViewById(R.id.dialog_box_search);
+                cancelbutton=view.findViewById(R.id.dialog_box_cancel);
+
+                lang_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+                        if(position==0){
+                            selectedlang="";
+                        }else {
+                            selectedlang = "&with_original_language=" + Filter.langHashmap.get(Filter.language.get(position));
+                        }
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+
+                    }
+                });
+
+                searchbutton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        String adult;
+
+                        if(adult_switch.isChecked()){
+
+                            adult="&include_adult=true&certification_country=IN&certification=A";
+
+                        }else{
+                            adult="&include_adult=false&certification_country=IN&certification.lte=UA";
+                        }
+
+                        String url=Url.base_url+"/discover/movie?"+Url.api_key+selectedgenre+selectedyear+selectedsort+selectedlang+adult;
+                        System.out.println("MovieActivity.onClick "+url);
+                        Intent intent=new Intent(MovieActivity.this,CategoryActivity.class);
+                        intent.putExtra("url",url);
+                        startActivity(intent);
+                    }
+                });
+
+                cancelbutton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        alert.dismiss();
+                    }
+                });
 
             }
         });
 
     }
 
+
+
     @Override
     public void onBackPressed() {
 
         if(l==1){
             movie_list.setVisibility(View.VISIBLE);
-            search.setVisibility(View.GONE);
+            searchfilterlayout.setVisibility(View.GONE);
             l=0;
         }else {
             super.onBackPressed();

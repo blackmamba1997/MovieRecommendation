@@ -97,6 +97,12 @@ public class SimilarMovieAdapter extends RecyclerView.Adapter<SimilarMovieAdapte
     }
 
     @Override
+    public void onViewRecycled(@NonNull SimilarMovieViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.poster.setImageResource(R.drawable.ic_search_black_24dp);
+    }
+
+    @Override
     public int getItemCount() {
         return SearchableActivity.similarmovie.size();
     }
