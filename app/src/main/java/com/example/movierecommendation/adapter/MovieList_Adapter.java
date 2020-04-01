@@ -7,9 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.movierecommendation.R;
 import com.example.movierecommendation.activity.CategoryActivity;
 import com.example.movierecommendation.activity.MovieActivity;
@@ -20,14 +22,16 @@ import org.json.JSONArray;
 public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.CustomViewHolder> {
 
     Context context;
-    public MovieList_Adapter(Context context){
-        this.context=context;
+
+    public MovieList_Adapter(Context context) {
+        this.context = context;
 
     }
+
     @NonNull
     @Override
     public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v= LayoutInflater.from(context).inflate(R.layout.category_list,parent,false);
+        View v = LayoutInflater.from(context).inflate(R.layout.category_list, parent, false);
 
         return new CustomViewHolder(v);
     }
@@ -35,7 +39,7 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
     @Override
     public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
 
-        final Movie_category obj= MovieActivity.jsonObjects.get(position);
+        final Movie_category obj = MovieActivity.jsonObjects.get(position);
         holder.cat_name.setText(obj.category_type);
 
         holder.cat_more.setOnClickListener(new View.OnClickListener() {
@@ -43,26 +47,24 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
             public void onClick(View v) {
 
                 Intent intent = new Intent(context, CategoryActivity.class);
-                intent.putExtra("url",obj.category_base_url);
+                intent.putExtra("url", obj.category_base_url);
                 context.startActivity(intent);
 
             }
         });
 
-        LinearLayoutManager child_list_layout=new LinearLayoutManager(context,LinearLayoutManager.HORIZONTAL,false);
+        LinearLayoutManager child_list_layout = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
         holder.child_list.setLayoutManager(child_list_layout);
 
         try {
             JSONArray cat_list = obj.category_list.getJSONArray("results");
-            RecyclerView.Adapter child_adapter=new ChildList_Adapter(context,cat_list);
+            RecyclerView.Adapter child_adapter = new ChildList_Adapter(context, cat_list);
             holder.child_list.setAdapter(child_adapter);
-        }catch(Exception e){
-            JSONArray cat_list=null;
-            RecyclerView.Adapter child_adapter=new ChildList_Adapter(context,cat_list);
+        } catch (Exception e) {
+            JSONArray cat_list = null;
+            RecyclerView.Adapter child_adapter = new ChildList_Adapter(context, cat_list);
             holder.child_list.setAdapter(child_adapter);
         }
-
-
 
 
     }
@@ -73,7 +75,6 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
     }
 
 
-
     @Override
     public int getItemCount() {
 
@@ -81,7 +82,7 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
     }
 
 
-    public class CustomViewHolder extends RecyclerView.ViewHolder{
+    public class CustomViewHolder extends RecyclerView.ViewHolder {
 
         RecyclerView child_list;
         TextView cat_name;
@@ -90,9 +91,9 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
         public CustomViewHolder(@NonNull View itemView) {
 
             super(itemView);
-            child_list=itemView.findViewById(R.id.category_list);
-            cat_more=itemView.findViewById(R.id.more);
-            cat_name=itemView.findViewById(R.id.category_type);
+            child_list = itemView.findViewById(R.id.category_list);
+            cat_more = itemView.findViewById(R.id.more);
+            cat_name = itemView.findViewById(R.id.category_type);
         }
     }
 }

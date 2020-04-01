@@ -38,8 +38,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -58,7 +56,6 @@ public class MovieActivity extends AppCompatActivity {
     String selectedgenre="",selectedyear="",selectedsort="sort_by=popularity.desc",selectedlang="";
     Button searchbutton,cancelbutton;
     int l=0;
-
 
     public static ArrayList<Movie_category> jsonObjects;
     public static ArrayList<Movie> suggestion;
@@ -198,46 +195,49 @@ public class MovieActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                Toast.makeText(MovieActivity.this, "Typed "+newText, Toast.LENGTH_SHORT).show();
-                try {
-                    suggestion.clear();
-                    String query = URLEncoder.encode(newText, "utf-8").replaceAll("\\+", "%20");
-                    String url="https://api.themoviedb.org/3/search/movie?api_key=47125e67d25d22f00aebbf4f6d08a3aa&query="+query;
-                    JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                JSONArray array=response.getJSONArray("results");
-                                for(int i=0;i<array.length();i++){
+                //Toast.makeText(MovieActivity.this, "Typed "+newText, Toast.LENGTH_SHORT).show();
+                suggestion.clear();
+                if(newText.length()!=0) {
+                    try {
+                        String query = URLEncoder.encode(newText, "utf-8").replaceAll("\\+", "%20");
+                        String url = "https://api.themoviedb.org/3/search/movie?api_key=47125e67d25d22f00aebbf4f6d08a3aa&query=" + query;
+                        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    JSONArray array = response.getJSONArray("results");
+                                    for (int i = 0; i < array.length(); i++) {
 
-                                    String movie_name=array.getJSONObject(i).getString("title");
-                                    String movie_date=array.getJSONObject(i).getString("release_date");
-                                    String movie_year="";
-                                    if(movie_date.length()!=0){
-                                        movie_year=movie_date.substring(0,4);
+                                        String movie_name = array.getJSONObject(i).getString("title");
+                                        String movie_date = array.getJSONObject(i).getString("release_date");
+                                        String movie_year = "";
+                                        if (movie_date.length() != 0) {
+                                            movie_year = movie_date.substring(0, 4);
+                                        }
+                                        System.out.println("movie_year = " + movie_year);
+                                        int id = array.getJSONObject(i).getInt("id");
+                                        suggestion.add(new Movie(movie_name, movie_year, id));
                                     }
-                                    System.out.println("movie_year = " + movie_year);
-                                    int id=array.getJSONObject(i).getInt("id");
-                                    suggestion.add(new Movie(movie_name,movie_year,id));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
                                 }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                                s_adapter.notifyDataSetChanged();
+
                             }
-                            s_adapter.notifyDataSetChanged();
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
 
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
+                            }
+                        });
+                        suggestqueue.add(req);
 
-                        }
-                    });
-                    suggestqueue.add(req);
-                }catch(Exception e){
+                    } catch (Exception e) {
 
-
+                    }
+                }else{
+                    s_adapter.notifyDataSetChanged();
                 }
-
                 return true;
             }
         });
@@ -402,8 +402,6 @@ public class MovieActivity extends AppCompatActivity {
         });
 
     }
-
-
 
     @Override
     public void onBackPressed() {
