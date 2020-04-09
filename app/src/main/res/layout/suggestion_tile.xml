@@ -20,6 +20,7 @@
         android:maxLines="1"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textColor="#ffffff"
         android:layout_toRightOf="@id/search_icon"
         android:id="@+id/suggestion_movie_name"/>
 
@@ -27,6 +28,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/suggestion_movie_name"
+        android:textColor="#ffffff"
         android:text="year"
         android:layout_toRightOf="@id/search_icon"
         android:layout_marginLeft="5dp"

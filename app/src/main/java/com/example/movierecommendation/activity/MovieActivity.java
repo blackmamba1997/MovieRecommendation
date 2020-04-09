@@ -1,11 +1,11 @@
 package com.example.movierecommendation.activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -14,10 +14,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -34,10 +34,17 @@ import com.example.movierecommendation.ui.activities.Filter;
 import com.example.movierecommendation.ui.activities.Movie;
 import com.example.movierecommendation.ui.activities.Movie_category;
 import com.example.movierecommendation.ui.activities.Url;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -50,12 +57,14 @@ public class MovieActivity extends AppCompatActivity {
     MovieList_Adapter adapter;
     SuggestionListAdapter s_adapter;
     Toolbar toolbar;
+    ProgressBar loading_main;
     SearchView search;
     RelativeLayout searchfilterlayout;
     ImageView filterbutton;
-    String selectedgenre="",selectedyear="",selectedsort="sort_by=popularity.desc",selectedlang="";
-    Button searchbutton,cancelbutton;
-    int l=0;
+    FirebaseFirestore db;
+    String selectedgenre = "", selectedyear = "", selectedsort = "sort_by=popularity.desc", selectedlang = "";
+    Button searchbutton, cancelbutton;
+    int l = 0, request_counter = 0,category_counter=0;
 
     public static ArrayList<Movie_category> jsonObjects;
     public static ArrayList<Movie> suggestion;
@@ -66,10 +75,11 @@ public class MovieActivity extends AppCompatActivity {
         setContentView(R.layout.activity_movie);
 
         System.out.println(FirebaseAuth.getInstance().getCurrentUser().getUid());
-
         toolbar = findViewById(R.id.tool_bar);
         toolbar.inflateMenu(R.menu.toolbar_menu);
-        searchfilterlayout=findViewById(R.id.movie_activity_searchandfilter_layout);
+        loading_main=findViewById(R.id.loading_main_screen);
+        searchfilterlayout = findViewById(R.id.movie_activity_searchandfilter_layout);
+        db = FirebaseFirestore.getInstance();
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -87,15 +97,15 @@ public class MovieActivity extends AppCompatActivity {
                         movie_list.setVisibility(View.GONE);
                         searchfilterlayout.setVisibility(View.VISIBLE);
                         suggest_list.setVisibility(View.VISIBLE);
-                        l=1;
+                        l = 1;
 
-                    }else {
+                    } else {
 
                         Toast.makeText(MovieActivity.this, "pressed the settings button", Toast.LENGTH_SHORT).show();
                         movie_list.setVisibility(View.VISIBLE);
                         searchfilterlayout.setVisibility(View.GONE);
                         suggest_list.setVisibility(View.GONE);
-                        l=0;
+                        l = 0;
 
                     }
 
@@ -105,7 +115,7 @@ public class MovieActivity extends AppCompatActivity {
         });
 
         jsonObjects = new ArrayList<>();
-        suggestion=new ArrayList<>();
+        suggestion = new ArrayList<>();
 
         //creating a recyclerview with vertical linear layout for the main page
         //each view in the list will hold a recyclerview with horizontal linear layout
@@ -116,7 +126,7 @@ public class MovieActivity extends AppCompatActivity {
         adapter = new MovieList_Adapter(MovieActivity.this);
         movie_list.setAdapter(adapter);
 
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        final RequestQueue requestQueue = Volley.newRequestQueue(this);
 
         //Creation of  JsonoOjects request objects of three categories: popular,top rated and now playing and adding them to request queue
 
@@ -132,7 +142,7 @@ public class MovieActivity extends AppCompatActivity {
 
                 adapter.notifyDataSetChanged();
 
-                System.out.println(response.toString());
+                //System.out.println(response.toString());
 
             }
         }, null);
@@ -150,7 +160,7 @@ public class MovieActivity extends AppCompatActivity {
 
                 adapter.notifyDataSetChanged();
 
-                System.out.println(response.toString());
+                //System.out.println(response.toString());
 
             }
         }, null);
@@ -168,23 +178,137 @@ public class MovieActivity extends AppCompatActivity {
 
                 adapter.notifyDataSetChanged();
 
-                System.out.println(response.toString());
+                //System.out.println(response.toString());
 
             }
         }, null);
         requestQueue.add(popular_json);
 
-        suggest_list=findViewById(R.id.suggestion_list);
+        //Testing out the request of data from server
+
+        DocumentReference movie = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        movie.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if(task.getResult().exists()){
+                            String id=task.getResult().getString("recent");
+                            JsonObjectRequest prev_movie_similar = new JsonObjectRequest("http://192.168.43.139:8000/home/test/"+id+"/", null, new Response.Listener<JSONObject>() {
+                                @Override
+                                public void onResponse(JSONObject response) {
+                                    System.out.println("inside the method");
+                                    try {
+                                        final JSONArray jsonarray = response.getJSONArray("result");
+
+                                        final JSONArray array = new JSONArray();
+                                        for (int i = 0; i < jsonarray.length(); i++) {
+                                            String movie_id = jsonarray.getJSONObject(i).getString("id");
+                                            JsonObjectRequest ob = new JsonObjectRequest(Url.movieurl + movie_id + "?" + Url.api_key, null, new Response.Listener<JSONObject>() {
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    array.put(response);
+                                                    System.out.println(" array= " + array.toString());
+                                                    request_counter++;
+                                                    if (request_counter == jsonarray.length()) {
+                                                        System.out.println("inside if");
+                                                        JSONObject jsonObject = new JSONObject();
+                                                        try {
+                                                            jsonObject.put("results", array);
+                                                            jsonObjects.add(0, new Movie_category(jsonObject, "Based on Recent Search", null));
+                                                            adapter.notifyDataSetChanged();
+                                                            movie_list.setVisibility(View.VISIBLE);
+                                                            loading_main.setVisibility(View.GONE);
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+
+
+                                                    }
+                                                }
+                                            }, new Response.ErrorListener() {
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+
+                                                }
+                                            });
+                                            requestQueue.add(ob);
+                                        }
+
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    System.out.println("error = " + error);
+                                    movie_list.setVisibility(View.VISIBLE);
+                                    loading_main.setVisibility(View.GONE);
+                                }
+                            });
+                            requestQueue.add(prev_movie_similar);
+                        }
+                    }
+                });
+
+        /*JsonObjectRequest prev_movie_similar = new JsonObjectRequest("http://192.168.43.139:8000/home/test//", null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                System.out.println("inside the method");
+                try {
+                    final JSONArray jsonarray = response.getJSONArray("result");
+
+                    final JSONArray array = new JSONArray();
+                    for (int i = 0; i < jsonarray.length(); i++) {
+                        String movie_id = jsonarray.getJSONObject(i).getString("id");
+                        JsonObjectRequest ob = new JsonObjectRequest(Url.movieurl + movie_id + "?" + Url.api_key, null, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                array.put(response);
+                                System.out.println(" array= " + array.toString());
+                                request_counter++;
+                                if (request_counter == jsonarray.length()) {
+                                    System.out.println("inside if");
+                                    JSONObject jsonObject = new JSONObject();
+                                    try {
+                                        jsonObject.put("results", array);
+                                        jsonObjects.add(0,new Movie_category(jsonObject, "Based on Recent Search", null));
+                                        adapter.notifyDataSetChanged();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            }
+                        }, null);
+                        requestQueue.add(ob);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                System.out.println("error = " + error);
+            }
+        });
+        requestQueue.add(prev_movie_similar);*/
+
+        //end of test block
+
+        suggest_list = findViewById(R.id.suggestion_list);
         suggestionmanager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         suggest_list.setLayoutManager(suggestionmanager);
-        s_adapter=new SuggestionListAdapter();
+        s_adapter = new SuggestionListAdapter();
         suggest_list.setAdapter(s_adapter);
 
-        search=findViewById(R.id.searchbar);
+        search = findViewById(R.id.searchbar);
         search.setIconifiedByDefault(false);
         search.setSubmitButtonEnabled(false);
 
-        final RequestQueue suggestqueue=Volley.newRequestQueue(this);
+        final RequestQueue suggestqueue = Volley.newRequestQueue(this);
 
         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -197,7 +321,7 @@ public class MovieActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 //Toast.makeText(MovieActivity.this, "Typed "+newText, Toast.LENGTH_SHORT).show();
                 suggestion.clear();
-                if(newText.length()!=0) {
+                if (newText.length() != 0) {
                     try {
                         String query = URLEncoder.encode(newText, "utf-8").replaceAll("\\+", "%20");
                         String url = "https://api.themoviedb.org/3/search/movie?api_key=47125e67d25d22f00aebbf4f6d08a3aa&query=" + query;
@@ -235,14 +359,14 @@ public class MovieActivity extends AppCompatActivity {
                     } catch (Exception e) {
 
                     }
-                }else{
+                } else {
                     s_adapter.notifyDataSetChanged();
                 }
                 return true;
             }
         });
 
-        JsonObjectRequest genrereq=new JsonObjectRequest(Request.Method.GET, Url.base_url + "/genre/movie/list?" + Url.api_key, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest genrereq = new JsonObjectRequest(Request.Method.GET, Url.base_url + "/genre/movie/list?" + Url.api_key, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
 
@@ -251,48 +375,48 @@ public class MovieActivity extends AppCompatActivity {
                     Filter.getYear();
                     Filter.getSort();
                     Filter.getLanguage();
-                    for (int i=0;i<Filter.genre.size();i++)
-                    System.out.println("MovieActivity.onResponse "+Filter.genre.get(i));
+                    for (int i = 0; i < Filter.genre.size(); i++)
+                        System.out.println("MovieActivity.onResponse " + Filter.genre.get(i));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
 
-        },null);
+        }, null);
         requestQueue.add(genrereq);
 
-        filterbutton=findViewById(R.id.filter);
+        filterbutton = findViewById(R.id.filter);
         filterbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                final AlertDialog.Builder builder=new AlertDialog.Builder(MovieActivity.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(MovieActivity.this);
 
-                View view =getLayoutInflater().inflate(R.layout.filter_dialog_layout,null);
-                View view2 =getLayoutInflater().inflate(R.layout.filter_custom_title,null);
-                Spinner genre_spinner=view.findViewById(R.id.genre_spinner);
-                Spinner year_spinner=view.findViewById(R.id.year_spinner);
-                Spinner sort_spinner=view.findViewById(R.id.sort_spinner);
-                Spinner lang_spinner=view.findViewById(R.id.language_spinner);
-                final Switch adult_switch=view.findViewById(R.id.adult_switch);
+                View view = getLayoutInflater().inflate(R.layout.filter_dialog_layout, null);
+                View view2 = getLayoutInflater().inflate(R.layout.filter_custom_title, null);
+                Spinner genre_spinner = view.findViewById(R.id.genre_spinner);
+                Spinner year_spinner = view.findViewById(R.id.year_spinner);
+                Spinner sort_spinner = view.findViewById(R.id.sort_spinner);
+                Spinner lang_spinner = view.findViewById(R.id.language_spinner);
+                final Switch adult_switch = view.findViewById(R.id.adult_switch);
                 builder.setView(view);
                 builder.setCustomTitle(view2);
-                final AlertDialog alert=builder.create();
+                final AlertDialog alert = builder.create();
                 alert.show();
 
-                ArrayAdapter<String> genreadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.genre);
+                ArrayAdapter<String> genreadapter = new ArrayAdapter<String>(MovieActivity.this, android.R.layout.simple_list_item_1, Filter.genre);
                 genreadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 genre_spinner.setAdapter(genreadapter);
 
-                ArrayAdapter<String> yearadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.year);
+                ArrayAdapter<String> yearadapter = new ArrayAdapter<String>(MovieActivity.this, android.R.layout.simple_list_item_1, Filter.year);
                 yearadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 year_spinner.setAdapter(yearadapter);
 
-                ArrayAdapter<String> sortadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.sort);
+                ArrayAdapter<String> sortadapter = new ArrayAdapter<String>(MovieActivity.this, android.R.layout.simple_list_item_1, Filter.sort);
                 sortadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 sort_spinner.setAdapter(sortadapter);
 
-                ArrayAdapter<String> langadapter=new ArrayAdapter<String>(MovieActivity.this,android.R.layout.simple_list_item_1,Filter.language);
+                ArrayAdapter<String> langadapter = new ArrayAdapter<String>(MovieActivity.this, android.R.layout.simple_list_item_1, Filter.language);
                 langadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 lang_spinner.setAdapter(langadapter);
 
@@ -300,9 +424,9 @@ public class MovieActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                        if(position==0){
-                            selectedgenre="";
-                        }else {
+                        if (position == 0) {
+                            selectedgenre = "";
+                        } else {
                             selectedgenre = "&with_genres=" + Filter.genreHashMap.get(Filter.genre.get(position)).gid;
                         }
 
@@ -318,13 +442,13 @@ public class MovieActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                        if(position==0){
-                            selectedyear="";
-                        }else {
+                        if (position == 0) {
+                            selectedyear = "";
+                        } else {
                             selectedyear = "&primary_release_year=" + Filter.year.get(position);
                         }
 
-                        System.out.println("MovieActivity.onItemSelected"+selectedyear);
+                        System.out.println("MovieActivity.onItemSelected" + selectedyear);
 
                     }
 
@@ -338,7 +462,7 @@ public class MovieActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                        selectedsort="&sort_by="+Filter.sortHashMap.get(Filter.sort.get(position)).key;
+                        selectedsort = "&sort_by=" + Filter.sortHashMap.get(Filter.sort.get(position)).key;
                     }
 
                     @Override
@@ -347,16 +471,16 @@ public class MovieActivity extends AppCompatActivity {
                     }
                 });
 
-                searchbutton=view.findViewById(R.id.dialog_box_search);
-                cancelbutton=view.findViewById(R.id.dialog_box_cancel);
+                searchbutton = view.findViewById(R.id.dialog_box_search);
+                cancelbutton = view.findViewById(R.id.dialog_box_cancel);
 
                 lang_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
-                        if(position==0){
-                            selectedlang="";
-                        }else {
+                        if (position == 0) {
+                            selectedlang = "";
+                        } else {
                             selectedlang = "&with_original_language=" + Filter.langHashmap.get(Filter.language.get(position));
                         }
 
@@ -374,18 +498,18 @@ public class MovieActivity extends AppCompatActivity {
 
                         String adult;
 
-                        if(adult_switch.isChecked()){
+                        if (adult_switch.isChecked()) {
 
-                            adult="&include_adult=true&certification_country=IN&certification=A";
+                            adult = "&include_adult=true&certification_country=IN&certification=A";
 
-                        }else{
-                            adult="&include_adult=false&certification_country=IN&certification.lte=UA";
+                        } else {
+                            adult = "&include_adult=false&certification_country=IN&certification.lte=UA";
                         }
 
-                        String url=Url.base_url+"/discover/movie?"+Url.api_key+selectedgenre+selectedyear+selectedsort+selectedlang+adult;
-                        System.out.println("MovieActivity.onClick "+url);
-                        Intent intent=new Intent(MovieActivity.this,CategoryActivity.class);
-                        intent.putExtra("url",url);
+                        String url = Url.base_url + "/discover/movie?" + Url.api_key + selectedgenre + selectedyear + selectedsort + selectedlang + adult;
+                        System.out.println("MovieActivity.onClick " + url);
+                        Intent intent = new Intent(MovieActivity.this, CategoryActivity.class);
+                        intent.putExtra("url", url);
                         startActivity(intent);
                     }
                 });
@@ -401,16 +525,17 @@ public class MovieActivity extends AppCompatActivity {
             }
         });
 
+
     }
 
     @Override
     public void onBackPressed() {
 
-        if(l==1){
+        if (l == 1) {
             movie_list.setVisibility(View.VISIBLE);
             searchfilterlayout.setVisibility(View.GONE);
-            l=0;
-        }else {
+            l = 0;
+        } else {
             super.onBackPressed();
         }
     }

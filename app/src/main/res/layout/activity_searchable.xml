@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@drawable/fotoram"
     tools:context=".activity.SearchableActivity">
 
     <RelativeLayout
@@ -31,7 +31,9 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000"
+                >
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -58,7 +60,8 @@
                         android:singleLine="true"
                         android:scrollHorizontally="true"
                         android:textSize="25sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="#ffd369"/>
 
                     <TextView
                         android:id="@+id/movie_detail_rating"
@@ -67,7 +70,8 @@
                         android:layout_below="@id/movie_detail_title"
                         android:layout_toRightOf="@id/movie_detail_poster"
                         android:text="rating"
-                        android:textSize="20sp" />
+                        android:textSize="20sp"
+                        android:textColor="#ffd369"/>
 
                     <TextView
                         android:id="@+id/movie_detail_director"
@@ -76,7 +80,8 @@
                         android:layout_below="@id/movie_detail_rating"
                         android:layout_marginTop="5dp"
                         android:layout_toRightOf="@id/movie_detail_poster"
-                        android:text="director" />
+                        android:text="director"
+                        android:textColor="#ffd369"/>
 
                     <TextView
                         android:id="@+id/movie_detail_runtime"
@@ -85,7 +90,16 @@
                         android:layout_below="@id/movie_detail_director"
                         android:layout_marginTop="10dp"
                         android:layout_toRightOf="@id/movie_detail_poster"
-                        android:text="runtime" />
+                        android:text="runtime"
+                        android:textColor="#ffd369"/>
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:id="@+id/favorite_icon"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentBottom="true"
+                        android:padding="15dp"/>
 
                 </RelativeLayout>
 
@@ -96,7 +110,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -108,6 +123,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:text="Overview"
+                        android:textColor="#ffd369"
                         android:textSize="23sp"
                         android:textStyle="bold" />
 
@@ -116,6 +132,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
+                        android:textColor="#fefefe"
                         android:text="overview" />
 
                 </LinearLayout>
@@ -129,7 +146,8 @@
                 app:cardCornerRadius="5dp"
                 android:id="@+id/video_cardView"
                 android:visibility="gone"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -141,6 +159,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
                         android:text="Videos"
+                        android:textColor="#ffd369"
                         android:textSize="23sp"
                         android:textStyle="bold" />
 
@@ -161,7 +180,8 @@
                 app:cardCornerRadius="5dp"
                 android:id="@+id/cast_cardview"
                 android:visibility="gone"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -174,7 +194,8 @@
                         android:layout_marginStart="10dp"
                         android:text="Cast"
                         android:textSize="23sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="#ffd369"/>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/movie_detail_cast"
@@ -190,7 +211,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="7dp"
                 app:cardCornerRadius="5dp"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -203,7 +225,8 @@
                         android:layout_marginStart="10dp"
                         android:text="Rate It"
                         android:textSize="23sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="#ffd369"/>
 
                     <RatingBar
                         android:id="@+id/movie_detail_user_rating"
@@ -211,7 +234,8 @@
                         android:layout_height="wrap_content"
                         android:layout_margin="10dp"
                         android:numStars="5"
-                        android:stepSize="0.5" />
+                        android:stepSize="0.5"
+                        android:progressBackgroundTint="#d9989898"/>
 
                 </LinearLayout>
 
@@ -224,7 +248,8 @@
                 app:cardCornerRadius="5dp"
                 android:id="@+id/similarmovie_cardview"
                 android:visibility="gone"
-                app:cardElevation="5dp">
+                app:cardElevation="5dp"
+                app:cardBackgroundColor="#8c000000">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -237,7 +262,8 @@
                         android:layout_marginStart="10dp"
                         android:text="Similar Movies"
                         android:textSize="23sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="#ffd369"/>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/movie_detail_similar_movies"

@@ -51,7 +51,7 @@ import java.util.HashMap;
 
 public class SearchableActivity extends YouTubeBaseActivity {
 
-    ImageView poster;
+    ImageView poster, favorite;
     TextView title, rating, director, runtime, overview;
     RecyclerView cast_list, similarmovie_list;
     LinearLayoutManager cast_manager, similarmovie_manager;
@@ -65,11 +65,11 @@ public class SearchableActivity extends YouTubeBaseActivity {
     YouTubePlayer ytplayer;
     ProgressBar progressBar;
     LinearLayout layout;
-    CardView videocard,castcard,similarmoviecard;
+    CardView videocard, castcard, similarmoviecard;
     RatingBar ratingbar;
     FirebaseFirestore db;
     String movie_id;
-    boolean isfullscreen=false;
+    boolean isfullscreen = false, check;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,18 +87,19 @@ public class SearchableActivity extends YouTubeBaseActivity {
         overview = findViewById(R.id.movie_detail_overview);
         cast_list = findViewById(R.id.movie_detail_cast);
         similarmovie_list = findViewById(R.id.movie_detail_similar_movies);
-        progressBar=findViewById(R.id.searchable_activity_progressbar);
-        layout=findViewById(R.id.searchable_activity_linear_layout);
-        videocard=findViewById(R.id.video_cardView);
-        castcard=findViewById(R.id.cast_cardview);
-        similarmoviecard=findViewById(R.id.similarmovie_cardview);
-        ratingbar=findViewById(R.id.movie_detail_user_rating);
-        db=FirebaseFirestore.getInstance();
-        youTubePlayerView=findViewById(R.id.youtube_video_player);
+        progressBar = findViewById(R.id.searchable_activity_progressbar);
+        layout = findViewById(R.id.searchable_activity_linear_layout);
+        videocard = findViewById(R.id.video_cardView);
+        castcard = findViewById(R.id.cast_cardview);
+        similarmoviecard = findViewById(R.id.similarmovie_cardview);
+        ratingbar = findViewById(R.id.movie_detail_user_rating);
+        db = FirebaseFirestore.getInstance();
+        youTubePlayerView = findViewById(R.id.youtube_video_player);
+        favorite = findViewById(R.id.favorite_icon);
 
-        cast=new ArrayList<>();
-        similarmovie=new ArrayList<>();
-        youtubevideo=new ArrayList<>();
+        cast = new ArrayList<>();
+        similarmovie = new ArrayList<>();
+        youtubevideo = new ArrayList<>();
 
         cast_manager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         similarmovie_manager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -116,12 +117,11 @@ public class SearchableActivity extends YouTubeBaseActivity {
         requestQueue = Volley.newRequestQueue(this);
 
 
-
         ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
 
-                if(fromUser && rating>=0.5f) {
+                if (fromUser && rating >= 0.5f) {
 
                     Toast.makeText(SearchableActivity.this, "the rating is " + rating, Toast.LENGTH_SHORT).show();
                     DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
@@ -135,13 +135,39 @@ public class SearchableActivity extends YouTubeBaseActivity {
             }
         });
 
+        DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
+        doc.update("recent",movie_id);
+
+        isMovieFavourite(movie_id);
+
+        favorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                HashMap<String, String> map = new HashMap<>();
+                if(check==true) {
+                    Toast.makeText(SearchableActivity.this,"Removed from Favourites",Toast.LENGTH_SHORT).show();
+                    map.put("favourite", "0");
+                    favorite.setImageResource(R.drawable.favourite_notactive);
+                    check=false;
+                }else{
+                    Toast.makeText(SearchableActivity.this,"Added to Favourites",Toast.LENGTH_SHORT).show();
+                    map.put("favourite","1");
+                    favorite.setImageResource(R.drawable.favourite_active);
+                    check=true;
+                }
+                doc.collection("favourites").document(movie_id).set(map);
+            }
+        });
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        JsonObjectRequest movie_details = new JsonObjectRequest(Request.Method.GET, Url.movieurl+movie_id+"?"+Url.api_key+"&append_to_response=similar_movies%2Ccredits%2Cvideos", null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest movie_details = new JsonObjectRequest(Request.Method.GET, Url.movieurl + movie_id + "?" + Url.api_key + "&append_to_response=similar_movies%2Ccredits%2Cvideos", null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
 
@@ -150,75 +176,74 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
                 try {
 
-                    System.out.println("SearchableActivity.onResponse: "+response);
+                    System.out.println("SearchableActivity.onResponse: " + response);
                     insertposter(response.getString("poster_path"));
 
                     title.setText(response.getString("title"));
 
-                    JSONArray crewjsonarray=response.getJSONObject("credits").getJSONArray("crew");
+                    JSONArray crewjsonarray = response.getJSONObject("credits").getJSONArray("crew");
 
-                    for(int i=0;i<crewjsonarray.length();i++){
+                    for (int i = 0; i < crewjsonarray.length(); i++) {
 
-                        if(crewjsonarray.getJSONObject(i).getString("job").equals("Director")){
+                        if (crewjsonarray.getJSONObject(i).getString("job").equals("Director")) {
 
-                            director.setText("Director: " +crewjsonarray.getJSONObject(i).getString("name"));
+                            director.setText("Director: " + crewjsonarray.getJSONObject(i).getString("name"));
                             break;
                         }
 
                     }
 
-                    if(response.getInt("runtime")!=0) {
-                        runtime.setText("" + response.getInt("runtime")+" mins");
-                    }
-                    else{
+                    if (response.getInt("runtime") != 0) {
+                        runtime.setText("" + response.getInt("runtime") + " mins");
+                    } else {
                         runtime.setText("No data available");
                     }
 
-                    if (response.getString("vote_average").equals("0")){
+                    if (response.getString("vote_average").equals("0")) {
 
                         rating.setText("Not rated yet");
-                    }else{
+                    } else {
                         rating.setText(response.getString("vote_average"));
                     }
                     overview.setText(response.getString("overview"));
                     JSONArray castJsonarray = response.getJSONObject("credits").getJSONArray("cast");
 
-                    System.out.println("SearchableActivity.onResponse "+castJsonarray);
-                    JSONArray similarmovieJsonarray=response.getJSONObject("similar_movies").getJSONArray("results");
+                    System.out.println("SearchableActivity.onResponse " + castJsonarray);
+                    JSONArray similarmovieJsonarray = response.getJSONObject("similar_movies").getJSONArray("results");
 
-                    int k=10;
-                    if(castJsonarray.length()<10){
-                        k=castJsonarray.length();
+                    int k = 10;
+                    if (castJsonarray.length() < 10) {
+                        k = castJsonarray.length();
                     }
 
-                    for (int i = 0; i<k; i++) {
+                    for (int i = 0; i < k; i++) {
                         cast.add(castJsonarray.getJSONObject(i));
                     }
 
-                    if(cast.size()!=0) {
+                    if (cast.size() != 0) {
 
                         castcard.setVisibility(View.VISIBLE);
                         castAdapter.notifyDataSetChanged();
                     }
 
-                    for (int i = 0; i<similarmovieJsonarray.length(); i++) {
+                    for (int i = 0; i < similarmovieJsonarray.length(); i++) {
                         similarmovie.add(similarmovieJsonarray.getJSONObject(i));
                     }
 
-                    if(similarmovie.size()!=0) {
+                    if (similarmovie.size() != 0) {
 
                         similarmoviecard.setVisibility(View.VISIBLE);
                         similarMovieAdapter.notifyDataSetChanged();
 
                     }
 
-                    JSONArray ytvideos=response.getJSONObject("videos").getJSONArray("results");
+                    JSONArray ytvideos = response.getJSONObject("videos").getJSONArray("results");
 
-                    for (int i=0;i<ytvideos.length();i++){
+                    for (int i = 0; i < ytvideos.length(); i++) {
                         youtubevideo.add(ytvideos.getJSONObject(i).getString("key"));
                     }
 
-                    if(youtubevideo.size()!=0) {
+                    if (youtubevideo.size() != 0) {
                         videocard.setVisibility(View.VISIBLE);
 
                         youTubePlayerView.initialize(Url.google_api_key, new YouTubePlayer.OnInitializedListener() {
@@ -227,7 +252,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
                                 System.out.println("SearchableActivity.onInitializationSuccess entered");
 
-                                ytplayer=youTubePlayer;
+                                ytplayer = youTubePlayer;
 
                                 ytplayer.cueVideos(youtubevideo);
 
@@ -235,7 +260,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
                                 ytplayer.setOnFullscreenListener(new YouTubePlayer.OnFullscreenListener() {
                                     @Override
                                     public void onFullscreen(boolean b) {
-                                        isfullscreen=b;
+                                        isfullscreen = b;
                                     }
                                 });
 
@@ -278,27 +303,27 @@ public class SearchableActivity extends YouTubeBaseActivity {
         cast.clear();
         similarmovie.clear();
         youtubevideo.clear();
-        if(ytplayer!=null) {
-          ytplayer.release();
+        if (ytplayer != null) {
+            ytplayer.release();
         }
 
     }
 
     @Override
     public void onBackPressed() {
-        if(isfullscreen){
+        if (isfullscreen) {
 
-            isfullscreen=false;
+            isfullscreen = false;
             ytplayer.setFullscreen(isfullscreen);
 
-        }else {
+        } else {
             super.onBackPressed();
         }
     }
 
-    private void insertposter(String path){
+    private void insertposter(String path) {
 
-        if(path.charAt(0)=='/') {
+        if (path.charAt(0) == '/') {
 
             ImageRequest posterrequest = new ImageRequest(Url.baseimageurl + path, new Response.Listener<Bitmap>() {
                 @Override
@@ -315,14 +340,14 @@ public class SearchableActivity extends YouTubeBaseActivity {
             });
 
             requestQueue.add(posterrequest);
-        }else{
+        } else {
             poster.setImageResource(R.drawable.ic_search_black_24dp);
         }
     }
 
-    private void findMovieRating(String movie_id){
+    private void findMovieRating(String movie_id) {
 
-        DocumentReference movie=db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+        DocumentReference movie = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
                 .collection("movies").document(movie_id);
 
         movie.get()
@@ -330,10 +355,10 @@ public class SearchableActivity extends YouTubeBaseActivity {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
-                        if(task.getResult().exists()){
+                        if (task.getResult().exists()) {
 
-                            DocumentSnapshot data=task.getResult();
-                            float rating=Float.valueOf(data.getString("rating"));
+                            DocumentSnapshot data = task.getResult();
+                            float rating = Float.valueOf(data.getString("rating"));
                             ratingbar.setRating(rating);
                         }
                     }
@@ -341,4 +366,31 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
     }
 
+    private void isMovieFavourite(String movie_id) {
+
+        DocumentReference movie = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .collection("favourites").document(movie_id);
+
+        movie.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+
+                        if (task.getResult().exists()) {
+
+                            DocumentSnapshot data = task.getResult();
+                            if (data.get("favourite").equals("1")) {
+                                favorite.setImageResource(R.drawable.favourite_active);
+                                check=true;
+                            } else {
+                                favorite.setImageResource(R.drawable.favourite_notactive);
+                                check=false;
+                            }
+                        }else{
+                            favorite.setImageResource(R.drawable.favourite_notactive);
+                        }
+
+                    }
+                });
+    }
 }

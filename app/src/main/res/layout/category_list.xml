@@ -15,7 +15,9 @@
             android:layout_width="wrap_content"
             android:layout_margin="5dp"
             android:layout_height="wrap_content"
-            android:text="genre" />
+            android:text="genre"
+            android:textStyle="bold"
+            android:textColor="#ffd369"/>
 
         <Button
             android:id="@+id/more"

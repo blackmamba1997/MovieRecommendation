@@ -42,16 +42,20 @@ public class MovieList_Adapter extends RecyclerView.Adapter<MovieList_Adapter.Cu
         final Movie_category obj = MovieActivity.jsonObjects.get(position);
         holder.cat_name.setText(obj.category_type);
 
-        holder.cat_more.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (obj.category_type.equalsIgnoreCase("Based on Recent Search")) {
+            holder.cat_more.setVisibility(View.INVISIBLE);
+        } else {
+            holder.cat_more.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                Intent intent = new Intent(context, CategoryActivity.class);
-                intent.putExtra("url", obj.category_base_url);
-                context.startActivity(intent);
+                    Intent intent = new Intent(context, CategoryActivity.class);
+                    intent.putExtra("url", obj.category_base_url);
+                    context.startActivity(intent);
 
-            }
-        });
+                }
+            });
+        }
 
         LinearLayoutManager child_list_layout = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
         holder.child_list.setLayoutManager(child_list_layout);
