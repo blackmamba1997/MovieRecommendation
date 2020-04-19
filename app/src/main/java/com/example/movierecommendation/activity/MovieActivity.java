@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
@@ -193,7 +194,7 @@ public class MovieActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if(task.getResult().exists()){
                             String id=task.getResult().getString("recent");
-                            JsonObjectRequest prev_movie_similar = new JsonObjectRequest("http://192.168.43.139:8000/home/test/"+id+"/", null, new Response.Listener<JSONObject>() {
+                            JsonObjectRequest prev_movie_similar = new JsonObjectRequest("https://cinema1997.herokuapp.com/home/test/"+id+"/", null, new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
                                     System.out.println("inside the method");
@@ -219,6 +220,7 @@ public class MovieActivity extends AppCompatActivity {
                                                             movie_list.setVisibility(View.VISIBLE);
                                                             loading_main.setVisibility(View.GONE);
                                                         } catch (JSONException e) {
+                                                            System.out.println("error in receiving");
                                                             e.printStackTrace();
                                                         }
 
@@ -246,6 +248,7 @@ public class MovieActivity extends AppCompatActivity {
                                     loading_main.setVisibility(View.GONE);
                                 }
                             });
+
                             requestQueue.add(prev_movie_similar);
                         }
                     }
