@@ -69,7 +69,12 @@ public class RegisterActivity extends AppCompatActivity {
 
                                         Map<String,Object> map=new HashMap<>();
                                         map.put("email",username);
-
+                                        Map<String,Object> map2=new HashMap<>();
+                                        String[] genresname={"Action","Adventure","Animation","Comedy","Crime","Documentary","Drama","Family","Fantasy","History","Horror","Music","Mystery","Romance","Science Fiction","TV Movie","Thriller","War","Western"};
+                                        for (int i=0;i<genresname.length;i++){
+                                            map2.put(genresname[i],"0");
+                                        }
+                                        map.put("genre",map2);
                                         db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).set(map)
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
