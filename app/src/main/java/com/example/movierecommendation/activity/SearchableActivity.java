@@ -48,6 +48,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class SearchableActivity extends YouTubeBaseActivity {
 
@@ -116,7 +117,6 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
         requestQueue = Volley.newRequestQueue(this);
 
-
         ratingbar.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
@@ -128,7 +128,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
                     HashMap<String, String> map = new HashMap<>();
                     map.put("rating", "" + rating);
-                    doc.collection("movies").document(movie_id).set(map);
+                    doc.collection("movies").document(movie_id).update("rating",""+rating);
 
                 }
 
@@ -145,19 +145,17 @@ public class SearchableActivity extends YouTubeBaseActivity {
             @Override
             public void onClick(View v) {
                 DocumentReference doc = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
-                HashMap<String, String> map = new HashMap<>();
                 if(check==true) {
                     Toast.makeText(SearchableActivity.this,"Removed from Favourites",Toast.LENGTH_SHORT).show();
-                    map.put("favourite", "0");
                     favorite.setImageResource(R.drawable.favourite_notactive);
+                    doc.collection("movies").document(movie_id).update("favourite","0");
                     check=false;
                 }else{
                     Toast.makeText(SearchableActivity.this,"Added to Favourites",Toast.LENGTH_SHORT).show();
-                    map.put("favourite","1");
+                    doc.collection("movies").document(movie_id).update("favourite","1");
                     favorite.setImageResource(R.drawable.favourite_active);
                     check=true;
                 }
-                doc.collection("favourites").document(movie_id).set(map);
             }
         });
 
@@ -167,7 +165,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
     protected void onStart() {
         super.onStart();
 
-        JsonObjectRequest movie_details = new JsonObjectRequest(Request.Method.GET, Url.movieurl + movie_id + "?" + Url.api_key + "&append_to_response=similar_movies%2Ccredits%2Cvideos", null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest movie_details = new JsonObjectRequest(Request.Method.GET, Url.movieurl + movie_id + "?" + Url.api_key + "&append_to_response=similar_movies%2Ccredits%2Cvideos%2Ckeywords", null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
 
@@ -183,6 +181,25 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
                     JSONArray crewjsonarray = response.getJSONObject("credits").getJSONArray("crew");
 
+                    //test block
+                    JSONArray keywordsarray = response.getJSONObject("keywords").getJSONArray("keywords");
+                    JSONArray genrearray = response.getJSONArray("genres");
+                    String combined_keyword="";
+
+                    for (int i=0;i<keywordsarray.length()+genrearray.length();i++){
+
+                        if(i<keywordsarray.length()){
+                            combined_keyword=combined_keyword+" "+keywordsarray.getJSONObject(i).getString("name");
+                        }
+                        else{
+                            combined_keyword=combined_keyword+" "+genrearray.getJSONObject(i-keywordsarray.length()).getString("name");
+                        }
+                    }
+                    combined_keyword=combined_keyword.trim();
+                    DocumentReference userdoc=db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                    userdoc.update("keyword",combined_keyword);
+                    //end of test block
+                    isMovieSearched(movie_id,genrearray);
                     for (int i = 0; i < crewjsonarray.length(); i++) {
 
                         if (crewjsonarray.getJSONObject(i).getString("job").equals("Director")) {
@@ -356,10 +373,12 @@ public class SearchableActivity extends YouTubeBaseActivity {
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
 
                         if (task.getResult().exists()) {
-
+                            System.out.println("entered findmovierating");
                             DocumentSnapshot data = task.getResult();
-                            float rating = Float.valueOf(data.getString("rating"));
-                            ratingbar.setRating(rating);
+                            if(data.contains("rating")) {
+                                float rating = Float.valueOf(data.getString("rating"));
+                                ratingbar.setRating(rating);
+                            }
                         }
                     }
                 });
@@ -369,7 +388,7 @@ public class SearchableActivity extends YouTubeBaseActivity {
     private void isMovieFavourite(String movie_id) {
 
         DocumentReference movie = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                .collection("favourites").document(movie_id);
+                .collection("movies").document(movie_id);
 
         movie.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -379,17 +398,54 @@ public class SearchableActivity extends YouTubeBaseActivity {
                         if (task.getResult().exists()) {
 
                             DocumentSnapshot data = task.getResult();
-                            if (data.get("favourite").equals("1")) {
+
+                            if (data.contains("favourite") && data.get("favourite").equals("1")) {
                                 favorite.setImageResource(R.drawable.favourite_active);
                                 check=true;
-                            } else {
+                            } else if(data.contains("favourite") && data.get("favourite").equals("0")){
                                 favorite.setImageResource(R.drawable.favourite_notactive);
                                 check=false;
+                            }else {
+                                favorite.setImageResource(R.drawable.favourite_notactive);
                             }
                         }else{
                             favorite.setImageResource(R.drawable.favourite_notactive);
                         }
 
+                    }
+                });
+    }
+    //test for search history
+    private void isMovieSearched(String movie_id, final JSONArray genres){
+        final DocumentReference doctemp = db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).collection("movies").document(movie_id);
+        final Map<String,Object> map=new HashMap<>();
+
+        doctemp.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (!task.getResult().exists()){
+                            map.put("searched","1");
+                            doctemp.set(map);
+                            final DocumentReference doc=db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                            doc.get()
+                                    .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            DocumentSnapshot user=task.getResult();
+                                            for (int i=0;i<genres.length();i++){
+                                                try {
+                                                    String genrename=genres.getJSONObject(i).getString("name");
+                                                    int genrecount=Integer.valueOf(user.getString("genre."+genrename));
+                                                    doc.update("genre."+genrename,""+(genrecount+1));
+                                                } catch (JSONException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+
+                                        }
+                                    });
+                        }
                     }
                 });
     }

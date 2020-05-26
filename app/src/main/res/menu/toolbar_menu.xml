@@ -4,7 +4,7 @@
     <item
         android:id="@+id/action_settings"
         app:showAsAction="never"
-        android:title="Settings">
+        android:title="Profile">
     </item>
 
     <item

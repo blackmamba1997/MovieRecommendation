@@ -14,6 +14,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
@@ -46,6 +47,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
@@ -60,7 +62,7 @@ public class MovieActivity extends AppCompatActivity {
     Toolbar toolbar;
     ProgressBar loading_main;
     SearchView search;
-    RelativeLayout searchfilterlayout;
+    LinearLayout searchfilterlayout;
     ImageView filterbutton;
     FirebaseFirestore db;
     String selectedgenre = "", selectedyear = "", selectedsort = "sort_by=popularity.desc", selectedlang = "";
@@ -94,7 +96,7 @@ public class MovieActivity extends AppCompatActivity {
                 } else if (id == R.id.action_search) {
                     if (l == 0) {
 
-                        Toast.makeText(MovieActivity.this, "pressed the settings button", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MovieActivity.this, "pressed the search", Toast.LENGTH_SHORT).show();
                         movie_list.setVisibility(View.GONE);
                         searchfilterlayout.setVisibility(View.VISIBLE);
                         suggest_list.setVisibility(View.VISIBLE);
@@ -102,15 +104,20 @@ public class MovieActivity extends AppCompatActivity {
 
                     } else {
 
-                        Toast.makeText(MovieActivity.this, "pressed the settings button", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MovieActivity.this, "pressed the search off", Toast.LENGTH_SHORT).show();
                         movie_list.setVisibility(View.VISIBLE);
                         searchfilterlayout.setVisibility(View.GONE);
                         suggest_list.setVisibility(View.GONE);
                         l = 0;
 
                     }
-
+                //new profile section
+                }else if (id== R.id.action_settings){
+                    Toast.makeText(MovieActivity.this,"Profile",Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(MovieActivity.this,ProfileActivity.class));
+                    return true;
                 }
+                //end of the block
                 return false;
             }
         });
@@ -192,9 +199,19 @@ public class MovieActivity extends AppCompatActivity {
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if(task.getResult().exists()){
-                            String id=task.getResult().getString("recent");
-                            JsonObjectRequest prev_movie_similar = new JsonObjectRequest("https://cinema1997.herokuapp.com/home/test/"+id+"/", null, new Response.Listener<JSONObject>() {
+                        String id = "";
+                        String keyword = "";
+                        if (task.getResult().exists()) {
+                            if (task.getResult().contains("recent") && task.getResult().contains("keyword")) {
+                                System.out.println(" found the KEyWORDS");
+                                id = task.getResult().getString("recent");
+                                try {
+                                    keyword = URLEncoder.encode(task.getResult().getString("keyword"), "utf-8").replaceAll("\\+", "%20");
+                                } catch (UnsupportedEncodingException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            JsonObjectRequest prev_movie_similar = new JsonObjectRequest("https://cinemabuna.herokuapp.com/home/test/" + id + "/" + keyword + "/", null, new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
                                     System.out.println("inside the method");
@@ -207,6 +224,7 @@ public class MovieActivity extends AppCompatActivity {
                                             JsonObjectRequest ob = new JsonObjectRequest(Url.movieurl + movie_id + "?" + Url.api_key, null, new Response.Listener<JSONObject>() {
                                                 @Override
                                                 public void onResponse(JSONObject response) {
+                                                    System.out.println("SUCCESS!!!!!");
                                                     array.put(response);
                                                     System.out.println(" array= " + array.toString());
                                                     request_counter++;
@@ -224,12 +242,29 @@ public class MovieActivity extends AppCompatActivity {
                                                             e.printStackTrace();
                                                         }
 
-
                                                     }
+
                                                 }
                                             }, new Response.ErrorListener() {
                                                 @Override
                                                 public void onErrorResponse(VolleyError error) {
+                                                    System.out.println("ERROR in receiving");
+                                                    request_counter++;
+                                                    if (request_counter == jsonarray.length()) {
+                                                        System.out.println("inside if");
+                                                        JSONObject jsonObject = new JSONObject();
+                                                        try {
+                                                            jsonObject.put("results", array);
+                                                            jsonObjects.add(0, new Movie_category(jsonObject, "Based on Recent Search", null));
+                                                            adapter.notifyDataSetChanged();
+                                                            movie_list.setVisibility(View.VISIBLE);
+                                                            loading_main.setVisibility(View.GONE);
+                                                        } catch (JSONException e) {
+                                                            System.out.println("error in receiving");
+                                                            e.printStackTrace();
+                                                        }
+
+                                                    }
 
                                                 }
                                             });

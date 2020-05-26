@@ -29,40 +29,42 @@
                     android:id="@+id/tool_bar"
                     layout="@layout/tool_bar" />
 
-                <RelativeLayout
+                <LinearLayout
                     android:id="@+id/movie_activity_searchandfilter_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:weightSum="5"
                     android:visibility="gone">
 
                     <SearchView
                         android:id="@+id/searchbar"
-                        android:layout_width="310dp"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
+                        android:layout_weight="4"
                         android:layout_marginBottom="5dp"
                         android:queryHint="Search Here..." />
 
-                    <ImageView
-                        android:id="@+id/filter"
-                        android:layout_width="35dp"
-                        android:layout_height="35dp"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="5dp"
-                        android:src="@drawable/ic_filter_list_black_24dp" />
-
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@id/filter"
+                        android:id="@+id/or_text"
+                        android:layout_weight="0.5"
+                        android:layout_gravity="center"
                         android:text="OR"
                         android:textColor="@color/colorPrimaryDark"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                </RelativeLayout>
+                    <ImageView
+                        android:id="@+id/filter"
+                        android:layout_width="0dp"
+                        android:layout_height="35dp"
+                        android:layout_weight="0.5"
+                        android:layout_margin="5dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_filter_list_black_24dp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
