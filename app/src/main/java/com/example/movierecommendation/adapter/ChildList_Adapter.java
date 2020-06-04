@@ -51,7 +51,8 @@ public class ChildList_Adapter extends RecyclerView.Adapter<ChildList_Adapter.Vi
 
             final JSONObject movie=list.getJSONObject(position);
             holder.movie_name.setText(movie.getString("title"));
-            holder.rating.setText(movie.get("vote_average").toString());
+            String ratingavg=String.format("%.1f",(movie.getDouble("vote_average")/2));
+            holder.rating.setText(ratingavg);
             String path=movie.get("poster_path").toString();
 
             if(path.charAt(0)=='/') {

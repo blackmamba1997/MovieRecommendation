@@ -70,7 +70,8 @@ public class GridLayoutAdapter extends RecyclerView.Adapter<GridLayoutAdapter.Vi
             if (gridlist.get(position).get("vote_average").toString().equals("0")){
                 holder.rating.setText("Not rated yet");
             }else {
-                holder.rating.setText(gridlist.get(position).get("vote_average").toString());
+                String ratingavg=String.format("%.1f",(gridlist.get(position).getDouble("vote_average")/2));
+                holder.rating.setText(ratingavg);
             }
 
             String path=gridlist.get(position).getString("poster_path");

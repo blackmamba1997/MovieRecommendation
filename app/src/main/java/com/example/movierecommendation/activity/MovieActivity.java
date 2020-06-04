@@ -4,10 +4,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,6 +40,7 @@ import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.movierecommendation.NotificationService;
 import com.example.movierecommendation.adapter.MovieList_Adapter;
 import com.example.movierecommendation.R;
 import com.example.movierecommendation.adapter.SuggestionListAdapter;
@@ -50,6 +62,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class MovieActivity extends AppCompatActivity {
 
@@ -65,9 +78,11 @@ public class MovieActivity extends AppCompatActivity {
     LinearLayout searchfilterlayout;
     ImageView filterbutton;
     FirebaseFirestore db;
+    AlarmManager alarmManager;
+    PendingIntent pending;
     String selectedgenre = "", selectedyear = "", selectedsort = "sort_by=popularity.desc", selectedlang = "";
     Button searchbutton, cancelbutton;
-    int l = 0, request_counter = 0,category_counter=0;
+    int l = 0, request_counter = 0, category_counter = 0;
 
     public static ArrayList<Movie_category> jsonObjects;
     public static ArrayList<Movie> suggestion;
@@ -80,15 +95,21 @@ public class MovieActivity extends AppCompatActivity {
         System.out.println(FirebaseAuth.getInstance().getCurrentUser().getUid());
         toolbar = findViewById(R.id.tool_bar);
         toolbar.inflateMenu(R.menu.toolbar_menu);
-        loading_main=findViewById(R.id.loading_main_screen);
+        loading_main = findViewById(R.id.loading_main_screen);
         searchfilterlayout = findViewById(R.id.movie_activity_searchandfilter_layout);
         db = FirebaseFirestore.getInstance();
+
+        //new notification
+        checkNotification();
 
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
                 if (id == R.id.action_logout) {
+
+                    //cancel existing pendingintent reference using cancel()of AlarmManager instance
+                    cancelIntent();
                     FirebaseAuth.getInstance().signOut();
                     startActivity(new Intent(MovieActivity.this, LoginActivity.class));
                     finish();
@@ -111,10 +132,10 @@ public class MovieActivity extends AppCompatActivity {
                         l = 0;
 
                     }
-                //new profile section
-                }else if (id== R.id.action_settings){
-                    Toast.makeText(MovieActivity.this,"Profile",Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(MovieActivity.this,ProfileActivity.class));
+                    //new profile section
+                } else if (id == R.id.action_settings) {
+                    Toast.makeText(MovieActivity.this, "Profile", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(MovieActivity.this, ProfileActivity.class));
                     return true;
                 }
                 //end of the block
@@ -575,6 +596,49 @@ public class MovieActivity extends AppCompatActivity {
             l = 0;
         } else {
             super.onBackPressed();
+        }
+    }
+
+    //notification feature
+    private void checkNotification() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String name = "channel 1 notification";
+            String description = "Channel notification";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("Channel 1", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        alarmManager = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        Intent alarmService = new Intent(this, NotificationService.class);
+        pending = PendingIntent.getService(getApplicationContext(), 1997, alarmService, PendingIntent.FLAG_NO_CREATE);
+        System.out.println("The result is :"+pending);
+        Calendar calendar = Calendar.getInstance();
+        //calendar.setTimeInMillis(System.currentTimeMillis());
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 30);
+
+        if (pending==null) {
+            System.out.println("inside this if");
+            pending = PendingIntent.getService(getApplicationContext(), 1997, alarmService, 0);
+            System.out.println("if result :"+pending);
+            alarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),AlarmManager.INTERVAL_HALF_HOUR,pending);
+        }
+
+    }
+
+    private void cancelIntent(){
+        Intent alarmService = new Intent(this, NotificationService.class);
+        System.out.println("the cancel result is : "+pending);
+        if (pending!=null){
+            System.out.println("Cancel existing pendingintent");
+            alarmManager.cancel(pending);
+            pending.cancel();
         }
     }
 }

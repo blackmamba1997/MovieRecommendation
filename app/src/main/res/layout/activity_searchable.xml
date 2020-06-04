@@ -232,7 +232,8 @@
                         android:id="@+id/movie_detail_user_rating"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
                         android:numStars="5"
                         android:stepSize="0.5"
                         android:progressBackgroundTint="#d9989898"/>

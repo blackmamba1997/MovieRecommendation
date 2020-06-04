@@ -42,8 +42,8 @@ public class SimilarMovieAdapter extends RecyclerView.Adapter<SimilarMovieAdapte
 
         try {
             holder.title.setText(SearchableActivity.similarmovie.get(position).getString("title"));
-
-            holder.rating.setText(""+SearchableActivity.similarmovie.get(position).get("vote_average"));
+            String ratingavg=String.format("%.1f",(SearchableActivity.similarmovie.get(position).getDouble("vote_average")/2));
+            holder.rating.setText(ratingavg);
         } catch (JSONException e) {
             e.printStackTrace();
         }

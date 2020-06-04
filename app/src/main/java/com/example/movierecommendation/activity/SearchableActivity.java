@@ -220,7 +220,8 @@ public class SearchableActivity extends YouTubeBaseActivity {
 
                         rating.setText("Not rated yet");
                     } else {
-                        rating.setText(response.getString("vote_average"));
+                        String ratingavg=String.format("%.1f",(response.getDouble("vote_average")/2));
+                        rating.setText(ratingavg);
                     }
                     overview.setText(response.getString("overview"));
                     JSONArray castJsonarray = response.getJSONObject("credits").getJSONArray("cast");
@@ -442,11 +443,21 @@ public class SearchableActivity extends YouTubeBaseActivity {
                                                     e.printStackTrace();
                                                 }
                                             }
+                                            if(!user.contains("search_counter") || user.getString("search_counter").equals("2")){
+                                                doc.update("search_counter","1");
+                                            }
+                                            else{
+                                                int counter=Integer.parseInt(user.getString("search_counter"))+1;
+                                                doc.update("search_counter",""+counter);
+                                            }
 
                                         }
                                     });
                         }
                     }
                 });
+
+
+
     }
 }
